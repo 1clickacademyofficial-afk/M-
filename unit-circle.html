@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>วงกลม 1 หน่วย — Unit Circle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f0e8;
+      --surface: #fffcf7;
+      --surface2: #ebe4d9;
+      --border: #c9bfb0;
+      --text: #1c1917;
+      --muted: #57534e;
+      --accent: #1d4ed8;
+      --cos: #c41e3a;
+      --sin: #0d7a45;
+      --tan: #b45309;
+      --circle: #44403c;
+      --point: #d4620a;
+      --point2: #6d28d9;
+      --focus-ring: #1d4ed8;
+      --canvas-bg: #fffcf7;
+      --grid: #d6d3d1;
+      --axis: #78716c;
+      --badge-bg: #e7e5e4;
+      --touch-min: 44px;
+      --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+      --font-sans: 'Noto Sans Thai', 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1917;
+        --surface: #292524;
+        --surface2: #44403c;
+        --border: #57534e;
+        --text: #fafaf9;
+        --muted: #a8a29e;
+        --accent: #60a5fa;
+      --cos: #fb7185;
+      --sin: #34d399;
+      --tan: #fcd34d;
+      --circle: #d6d3d1;
+      --point: #fb923c;
+      --point2: #a78bfa;
+        --focus-ring: #60a5fa;
+        --canvas-bg: #292524;
+        --grid: #44403c;
+        --axis: #a8a29e;
+        --badge-bg: #44403c;
+      }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    [hidden] { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 1rem;
+      z-index: 100;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 0 0 6px 6px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 0;
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.75rem 1rem 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    header h1 {
+      font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) {
+      main { grid-template-columns: 1.2fr 1fr; }
+    }
+
+    .canvas-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: crosshair;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      touch-action: none;
+      background: var(--canvas-bg);
+    }
+
+    canvas:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+
+    aside {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 0.55rem 0.65rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .panel-sticky { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+    }
+
+    .panel-sticky .toolbar-grid {
+      gap: 0.35rem;
+    }
+
+    .panel-sticky .toolbar-sub {
+      display: grid;
+      grid-template-columns: 2.4rem 2.4rem 1fr;
+      gap: 0.35rem;
+      margin-top: 0.35rem;
+      align-items: stretch;
+    }
+
+    .panel-sticky #btnRefAngle {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .panel-sticky #btnRefAngle[aria-pressed="true"] {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .panel-sticky .ctrl-btn {
+      min-height: 2rem;
+      padding: 0.28rem 0.35rem;
+      font-size: 0.76rem;
+      line-height: 1.2;
+    }
+
+    .panel-sticky #btnPiMode {
+      min-height: 2rem;
+      padding: 0.28rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .panel-sticky .trig-toggles {
+      gap: 0.3rem;
+    }
+
+    .panel-sticky .trig-toggle {
+      min-height: 2rem;
+      font-size: 0.76rem;
+      border-width: 1.5px;
+      padding: 0.2rem 0.15rem;
+    }
+
+    .angle-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .angle-tab {
+      min-height: var(--touch-min);
+      padding: 0.5rem 0.65rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .angle-tab:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .angle-tab[aria-selected="true"] {
+      background: var(--point);
+      border-color: var(--point);
+      color: #fff;
+    }
+
+    .angle-tab[data-target="Q"][aria-selected="true"] {
+      background: var(--point2);
+      border-color: var(--point2);
+    }
+
+    .target-badge {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .target-badge strong { color: var(--text); }
+
+    .nudge-block {
+      margin-top: 0.5rem;
+    }
+
+    .nudge-hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 0 0 0.4rem;
+      line-height: 1.35;
+    }
+
+    .nudge-target {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .nudge-target-btn {
+      min-height: 2.25rem;
+      padding: 0.35rem 0.5rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .nudge-target-btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .nudge-target-btn[aria-pressed="true"] {
+      background: var(--point);
+      border-color: var(--point);
+      color: #fff;
+    }
+
+    .nudge-target-btn.q[aria-pressed="true"] {
+      background: var(--point2);
+      border-color: var(--point2);
+    }
+
+    .nudge-btns {
+      margin-bottom: 0.4rem;
+    }
+
+    .nudge-cw {
+      border-color: var(--accent);
+    }
+
+    .nudge-negate {
+      width: 100%;
+      min-height: var(--touch-min);
+      margin-top: 0;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .dual-summary {
+      display: grid;
+      gap: 0.45rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .dual-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.45rem 0.65rem;
+      background: var(--surface2);
+      border-radius: 6px;
+      border-left: 4px solid;
+      min-height: 2.5rem;
+    }
+
+    .dual-row.p-row { border-color: var(--point); }
+    .dual-row.q-row { border-color: var(--point2); }
+
+    .dual-row .dual-label {
+      font-weight: 700;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .dual-row .angle-mini {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-align: right;
+    }
+
+    .dual-row.p-row .angle-mini { color: var(--point); }
+    .dual-row.q-row .angle-mini { color: var(--point2); }
+
+    .dual-row .quad-mini {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: right;
+      margin-top: 0.1rem;
+    }
+
+    .ref-heading {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .panel-sticky .trig-toggles { margin-top: 0; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+
+    .panel h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .angle-display { text-align: center; padding: 0.25rem 0; }
+
+    .angle-display .deg {
+      font-size: clamp(2rem, 6vw, 2.5rem);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+
+    .slider-wrap { margin: 0.75rem 0 0.25rem; }
+
+    .slider-wrap label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 12px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--surface2);
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 4px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--point);
+      border: 3px solid var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--point);
+      border: 3px solid var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      cursor: pointer;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      margin-top: 0.35rem;
+    }
+
+    .quadrant-wrap {
+      text-align: center;
+      margin-top: 0.65rem;
+      min-height: 1.6rem;
+    }
+
+    .quadrant-badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--badge-bg);
+      color: var(--text);
+    }
+
+    .point-tag {
+      display: inline-block;
+      width: 1.35rem;
+      height: 1.35rem;
+      line-height: 1.35rem;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      vertical-align: middle;
+    }
+
+    .point-tag.p { background: var(--point); }
+    .point-tag.q { background: var(--point2); }
+
+    /* เศษส่วนแบบ stacked */
+    .mwrap {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      gap: 1px;
+    }
+
+    .mfrac {
+      display: inline-grid;
+      grid-template-rows: auto 1px auto;
+      align-items: center;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 0.78em;
+      line-height: 1.05;
+      padding: 0 2px;
+    }
+
+    .mnum, .mden { padding: 0 3px; white-space: nowrap; }
+    .mline { background: currentColor; height: 1px; width: 100%; min-width: 1.1em; }
+
+    .angle-display .mfrac { font-size: 0.55em; }
+    .ref-btn .mfrac { font-size: 0.72em; }
+    .slider-labels .mfrac { font-size: 0.7em; }
+
+    .ref-angles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.45rem;
+    }
+
+    @media (max-width: 400px) {
+      .ref-angles { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .ref-btn {
+      min-height: var(--touch-min);
+      padding: 0.4rem 0.25rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .ref-btn:hover { background: var(--surface2); border-color: var(--accent); }
+
+    .ref-btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .ref-btn[aria-pressed="true"] {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .controls-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .ctrl-btn {
+      min-height: var(--touch-min);
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .ctrl-btn:hover { background: var(--border); }
+
+    .ctrl-btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .ctrl-btn[aria-pressed="true"] {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .ctrl-btn-wide { grid-column: 1 / -1; }
+
+    .trig-toggles {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.45rem;
+    }
+
+    .trig-toggle {
+      min-height: var(--touch-min);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.88rem;
+      border-width: 2px;
+      border-style: solid;
+      background: var(--surface);
+    }
+
+    .trig-toggle.cos { border-color: var(--cos); color: var(--cos); }
+    .trig-toggle.sin { border-color: var(--sin); color: var(--sin); }
+    .trig-toggle.tan { border-color: var(--tan); color: var(--tan); }
+
+    .trig-toggle[aria-pressed="true"] { background: var(--surface2); }
+    .trig-toggle.cos[aria-pressed="true"] { background: color-mix(in srgb, var(--cos) 12%, var(--surface)); }
+    .trig-toggle.sin[aria-pressed="true"] { background: color-mix(in srgb, var(--sin) 12%, var(--surface)); }
+    .trig-toggle.tan[aria-pressed="true"] { background: color-mix(in srgb, var(--tan) 12%, var(--surface)); }
+
+    .trig-toggle[aria-pressed="false"] {
+      opacity: 0.4;
+      background: var(--surface);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media print {
+      .skip-link, aside { display: none !important; }
+      main { grid-template-columns: 1fr; max-width: 100%; }
+      body { background: #fff; color: #000; }
+      canvas { border: 1px solid #000; }
+      header { border-bottom: 1px solid #000; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="#controls" class="skip-link">ข้ามไปส่วนควบคุม</a>
+
+<header>
+  <h1>วงกลม 1 หน่วย (Unit Circle)</h1>
+  <p style="margin-top:0.35rem;color:var(--muted);font-size:0.95rem;"><a href="special-angles.html" style="color:var(--accent);font-weight:600;">sin θ = cos(90°−θ) — มุม 30°·45°·60°</a></p>
+</header>
+
+<main>
+  <section class="canvas-wrap" aria-labelledby="canvas-heading">
+    <h2 id="canvas-heading" class="sr-only">กราฟวงกลม 1 หน่วย</h2>
+    <canvas
+      id="circle"
+      width="560"
+      height="560"
+      tabindex="0"
+      role="img"
+      aria-label="วงกลม 1 หน่วย แสดงจุด P มุม θ และเส้น cos sin"
+    ></canvas>
+  </section>
+
+  <aside id="controls" aria-label="แผงควบคุมและค่าตรีโกณมิติ">
+    <div class="panel panel-sticky">
+      <div class="controls-row toolbar-grid">
+        <button type="button" class="ctrl-btn" id="btnCompare"
+                aria-pressed="false" aria-label="เปรียบเทียบสองมุม" title="เปรียบเทียบ 2 มุม">⚖ 2 มุม</button>
+        <button type="button" class="ctrl-btn" id="btnCoords"
+                aria-pressed="false" aria-label="แสดงพิกัด" title="แสดงพิกัด">📍 พิกัด</button>
+        <button type="button" class="ctrl-btn" id="btnAnimate"
+                aria-pressed="false" aria-label="หมุนอัตโนมัติ" title="หมุนอัตโนมัติ">▶ หมุน</button>
+        <button type="button" class="ctrl-btn" id="btnReset" aria-label="รีเซ็ตมุมเป็น 0 องศา" title="รีเซ็ต">⟲ รีเซ็ต</button>
+      </div>
+      <div class="toolbar-sub">
+        <button type="button" class="ctrl-btn" id="btnPiMode"
+                aria-pressed="false" aria-label="สลับแสดงมุมเป็นเรเดียน" title="สลับองศา/เรเดียน">π</button>
+        <button type="button" class="ctrl-btn" id="btnRefAngle"
+                aria-pressed="false" aria-label="แสดงมุมอ้างอิง" title="มุมอ้างอิงในควอดรัน">∠</button>
+        <div class="trig-toggles" role="group" aria-label="เปิดปิดการแสดง cos sin tan">
+          <button type="button" class="ctrl-btn trig-toggle cos" id="btnShowCos"
+                  aria-pressed="true" aria-label="แสดง cos">cos</button>
+          <button type="button" class="ctrl-btn trig-toggle sin" id="btnShowSin"
+                  aria-pressed="true" aria-label="แสดง sin">sin</button>
+          <button type="button" class="ctrl-btn trig-toggle tan" id="btnShowTan"
+                  aria-pressed="true" aria-label="แสดง tan">tan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-angle" id="panelAngle">
+      <div class="angle-tabs" id="angleTabs" hidden role="tablist" aria-label="เลือกมุมที่จะปรับ">
+        <button type="button" class="angle-tab" id="tabP" role="tab" data-target="P"
+                aria-selected="true" aria-controls="angleEditor">θ · P</button>
+        <button type="button" class="angle-tab" id="tabQ" role="tab" data-target="Q"
+                aria-selected="false" aria-controls="angleEditor">θ₂ · Q</button>
+      </div>
+
+      <h2 id="angleHeading">มุม θ — จุด <span class="point-tag p">P</span></h2>
+
+      <div class="angle-display" aria-live="polite" aria-atomic="true" id="singleAngleDisplay">
+        <div class="deg" id="degVal" aria-hidden="true">0°</div>
+        <span class="sr-only" id="srAngle">มุม 0 องศา</span>
+      </div>
+
+      <div class="dual-summary" id="dualSummary" hidden aria-live="polite">
+        <div class="dual-row p-row">
+          <span class="dual-label"><span class="point-tag p">P</span> θ</span>
+          <div>
+            <div class="angle-mini" id="degValMiniP">45°</div>
+            <div class="quad-mini" id="quadMiniP">—</div>
+          </div>
+        </div>
+        <div class="dual-row q-row">
+          <span class="dual-label"><span class="point-tag q">Q</span> θ₂</span>
+          <div>
+            <div class="angle-mini" id="degValMiniQ">135°</div>
+            <div class="quad-mini" id="quadMiniQ">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="angleEditor">
+        <div class="quadrant-wrap" id="activeQuadrantWrap">
+          <span class="quadrant-badge" id="quadrantBadge">—</span>
+        </div>
+
+        <h2 class="ref-heading">มุมสำคัญ</h2>
+        <div class="ref-angles" id="refAngles" role="group" aria-label="เลือกมุมสำคัญ"></div>
+        <div class="nudge-block">
+          <p class="nudge-hint">มุมลบ = หมุนตามเข็มผ่าน 0° · เลือกมุมที่จะปรับก่อนกดปุ่ม</p>
+          <div class="nudge-target" id="nudgeTarget" role="group" aria-label="เลือกมุมสำหรับหมุนและสลับเครื่องหมาย">
+            <button type="button" class="nudge-target-btn" id="nudgeP" data-target="P" aria-pressed="true">θ · P</button>
+            <button type="button" class="nudge-target-btn q" id="nudgeQ" data-target="Q" aria-pressed="false" hidden>θ₂ · Q</button>
+          </div>
+          <div class="controls-row nudge-btns">
+            <button type="button" class="ctrl-btn" id="btnCCW" aria-label="หมุนทวนเข็มนาฬิกา 15 องศา" title="เพิ่มมุม · ทวนเข็ม">↺ +15°</button>
+            <button type="button" class="ctrl-btn nudge-cw" id="btnCW" aria-label="หมุนตามเข็มนาฬิกา 15 องศา" title="ลดมุม · มุมลบ">↻ −15°</button>
+          </div>
+          <button type="button" class="ctrl-btn nudge-negate" id="btnNegate"
+                  aria-label="สลับเครื่องหมายมุม" title="45° → −45°">− สลับเครื่องหมาย</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const CSS_SIZE = 560;
+  const R = 200;
+  /** รัศมีโค้งมุมอ้างอิงคงที่ — ให้ α เท่ากันมองเห็นเท่ากันทุกควอดรัน (ไม่ผูกกับ arcR ของ P/Q) */
+  const REF_ANGLE_ARC_R = 44;
+
+  const canvas = document.getElementById('circle');
+  const ctx = canvas.getContext('2d');
+
+  let dpr = 1;
+  let CX = CSS_SIZE / 2;
+  let CY = CSS_SIZE / 2;
+
+  let angleDeg = 45;
+  let angleDeg2 = 135;
+  let compareMode = false;
+  let activeTarget = 'P';
+  let dragTarget = null;
+  let dragging = false;
+  let animating = false;
+  let animId = null;
+  let drawPending = false;
+  let showCoords = false;
+  let showRefAngle = false;
+  let usePiMode = false;
+  const showTrig = { cos: true, sin: true, tan: true };
+  let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /** ล็อกค่าเศษส่วนตรีโกณมิติ — ไม่สลับไปมาระหว่างทศนิยมกับ √2/2 ตอนผ่านมุมสำคัญ */
+  let exactLatchRef = null;
+
+  const REF_ANGLES = [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330];
+
+  const PI_ANGLE_LABELS = {
+    0: '0', 30: 'π/6', 45: 'π/4', 60: 'π/3', 90: 'π/2',
+    120: '2π/3', 135: '3π/4', 150: '5π/6', 180: 'π',
+    210: '7π/6', 225: '5π/4', 240: '4π/3', 270: '3π/2',
+    300: '5π/3', 315: '7π/4', 330: '11π/6', 360: '2π',
+  };
+
+  const $ = id => document.getElementById(id);
+  const degVal = $('degVal');
+  const srAngle = $('srAngle');
+  const quadrantBadge = $('quadrantBadge');
+  const refContainer = $('refAngles');
+  const btnAnim = $('btnAnimate');
+  const btnCoords = $('btnCoords');
+  const btnPiMode = $('btnPiMode');
+  const btnRefAngle = $('btnRefAngle');
+  const btnShowCos = $('btnShowCos');
+  const btnShowSin = $('btnShowSin');
+  const btnShowTan = $('btnShowTan');
+  const btnCompare = $('btnCompare');
+  const angleTabs = $('angleTabs');
+  const tabP = $('tabP');
+  const tabQ = $('tabQ');
+  const angleHeading = $('angleHeading');
+  const singleAngleDisplay = $('singleAngleDisplay');
+  const dualSummary = $('dualSummary');
+  const degValMiniP = $('degValMiniP');
+  const degValMiniQ = $('degValMiniQ');
+  const quadMiniP = $('quadMiniP');
+  const quadMiniQ = $('quadMiniQ');
+  const activeQuadrantWrap = $('activeQuadrantWrap');
+  const panelAngle = $('panelAngle');
+  const btnCCW = $('btnCCW');
+  const btnCW = $('btnCW');
+  const btnNegate = $('btnNegate');
+  const nudgeTarget = $('nudgeTarget');
+  const nudgeP = $('nudgeP');
+  const nudgeQ = $('nudgeQ');
+
+  const HIT_RADIUS = 30;
+
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', e => {
+    reducedMotion = e.matches;
+    if (reducedMotion && animating) stopAnimate();
+  });
+
+  function getColors() {
+    const s = getComputedStyle(document.documentElement);
+    const v = name => s.getPropertyValue(name).trim();
+    return {
+      canvasBg: v('--canvas-bg'),
+      grid: v('--grid'),
+      axis: v('--axis'),
+      muted: v('--muted'),
+      circle: v('--circle'),
+      accent: v('--accent'),
+      cos: v('--cos'),
+      sin: v('--sin'),
+      tan: v('--tan'),
+      point: v('--point'),
+      point2: v('--point2'),
+      text: v('--text'),
+      surface: v('--surface'),
+    };
+  }
+
+  function setupCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = CSS_SIZE * dpr;
+    canvas.height = CSS_SIZE * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    CX = CSS_SIZE / 2;
+    CY = CSS_SIZE / 2;
+  }
+
+  function deg2rad(d) { return d * Math.PI / 180; }
+  function rad2deg(r) { return r * 180 / Math.PI; }
+
+  function normalizeDeg(d) {
+    d = d % 360;
+    return d < 0 ? d + 360 : d;
+  }
+
+  /** ตำแหน่งบนวงกลม (0°–360°) — แยกจากมุมที่แสดงซึ่งอาจเป็นมุมลบ */
+  function positionDeg(d) {
+    return normalizeDeg(d);
+  }
+
+  /** มุมสอนใน (−180°, 180°] — 330° แสดงเป็น −30° จุดบนวงกลมตรงกัน ไม่กลายเป็น −330° */
+  function clampTeachingDeg(d) {
+    while (d > 360) d -= 360;
+    while (d <= -360) d += 360;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    return d;
+  }
+
+  function signedFromClick(clickNorm, currentSigned) {
+    if (currentSigned >= -0.5) return clickNorm;
+    if (clickNorm > 90) return clickNorm - 360;
+    return clickNorm;
+  }
+
+  function fmt(n, dec = 3) {
+    if (!isFinite(n)) return '∞';
+    return n.toFixed(dec);
+  }
+
+  function exactValue(deg) {
+    const table = {
+      0:   { c: '1',      s: '0',      t: '0' },
+      30:  { c: '√3/2',   s: '1/2',    t: '√3/3' },
+      45:  { c: '√2/2',   s: '√2/2',   t: '1' },
+      60:  { c: '1/2',    s: '√3/2',   t: '√3' },
+      90:  { c: '0',      s: '1',      t: '∞' },
+      120: { c: '−1/2',   s: '√3/2',   t: '−√3' },
+      135: { c: '−√2/2',  s: '√2/2',   t: '−1' },
+      150: { c: '−√3/2',  s: '1/2',    t: '−√3/3' },
+      180: { c: '−1',     s: '0',      t: '0' },
+      210: { c: '−√3/2',  s: '−1/2',   t: '√3/3' },
+      225: { c: '−√2/2',  s: '−√2/2',  t: '1' },
+      240: { c: '−1/2',   s: '−√3/2',  t: '√3' },
+      270: { c: '0',      s: '−1',     t: '∞' },
+      300: { c: '1/2',    s: '−√3/2',  t: '−√3' },
+      315: { c: '√2/2',   s: '−√2/2',  t: '−1' },
+      330: { c: '√3/2',   s: '−1/2',   t: '−√3/3' },
+    };
+    return table[Math.round(normalizeDeg(deg))] || null;
+  }
+
+  function isAngleInteracting() {
+    return dragging || animating;
+  }
+
+  /** มุมใกล้มุมสำคัญ → ใช้รูปแบบ √2/2, 1/2 (มี hysteresis ตอนหยุด) */
+  function nearestExact(deg) {
+    if (isAngleInteracting()) {
+      exactLatchRef = null;
+      return null;
+    }
+    const d = normalizeDeg(deg);
+    let best = null;
+    let bestDiff = Infinity;
+    for (const ref of REF_ANGLES) {
+      const diff = Math.min(Math.abs(d - ref), 360 - Math.abs(d - ref));
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = ref;
+      }
+    }
+    if (bestDiff <= 0.04) exactLatchRef = best;
+    else if (bestDiff > 0.1) exactLatchRef = null;
+    if (exactLatchRef != null) return exactValue(exactLatchRef);
+    return null;
+  }
+
+  function displayVal(num, exactStr) {
+    return exactStr != null ? exactStr : fmt(num);
+  }
+
+  function parseMathDisplay(s) {
+    if (s == null || s === '∞') return { plain: s ?? '' };
+    let str = String(s);
+    let sign = '';
+    if (str[0] === '−' || str[0] === '-') { sign = '−'; str = str.slice(1); }
+    const i = str.indexOf('/');
+    if (i > 0) return { sign, num: str.slice(0, i), den: str.slice(i + 1) };
+    return { plain: sign + str };
+  }
+
+  function mathToHTML(s) {
+    const p = parseMathDisplay(s);
+    if (p.plain != null) return p.plain;
+    return `<span class="mwrap">${p.sign}<span class="mfrac"><span class="mnum">${p.num}</span><span class="mline"></span><span class="mden">${p.den}</span></span></span>`;
+  }
+
+  function setMathEl(el, s) {
+    const key = String(s);
+    if (el.getAttribute('data-display') === key) return;
+    el.setAttribute('data-display', key);
+    el.innerHTML = mathToHTML(s);
+  }
+
+  function getFracFontSize(ctx) {
+    const m = ctx.font.match(/(\d+(?:\.\d+)?)px/);
+    return (m ? parseFloat(m[1]) : 12) * 0.72;
+  }
+
+  function measureMathStr(ctx, str) {
+    const p = parseMathDisplay(str);
+    if (p.plain != null) return ctx.measureText(String(p.plain)).width;
+    const fs = getFracFontSize(ctx);
+    const saved = ctx.font;
+    ctx.font = saved.replace(/\d+(?:\.\d+)?px/, fs + 'px');
+    const w = Math.max(ctx.measureText(p.num).width, ctx.measureText(p.den).width);
+    ctx.font = saved;
+    const signW = p.sign ? ctx.measureText(p.sign).width : 0;
+    return signW + w + 2;
+  }
+
+  function drawMathStr(ctx, x, y, str) {
+    const p = parseMathDisplay(str);
+    if (p.plain != null) {
+      ctx.textAlign = 'left';
+      ctx.fillText(String(p.plain), x, y);
+      return ctx.measureText(String(p.plain)).width;
+    }
+    const fs = getFracFontSize(ctx);
+    const saved = ctx.font;
+    let cx = x;
+    if (p.sign) {
+      ctx.textAlign = 'left';
+      ctx.fillText(p.sign, cx, y);
+      cx += ctx.measureText(p.sign).width;
+    }
+    ctx.font = saved.replace(/\d+(?:\.\d+)?px/, fs + 'px');
+    const numW = ctx.measureText(p.num).width;
+    const denW = ctx.measureText(p.den).width;
+    const fw = Math.max(numW, denW);
+    const mid = cx + fw / 2;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.num, mid, y - fs * 0.62);
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx, y - fs * 0.2);
+    ctx.lineTo(cx + fw, y - fs * 0.2);
+    ctx.stroke();
+    ctx.fillText(p.den, mid, y + fs * 0.62);
+    ctx.font = saved;
+    return (p.sign ? ctx.measureText(p.sign).width : 0) + fw + 2;
+  }
+
+  function measureThetaLabel(ctx, angleStr) {
+    return ctx.measureText('θ = ').width + measureMathStr(ctx, angleStr);
+  }
+
+  function drawThetaLabel(ctx, cx, cy, angleStr, color) {
+    ctx.font = 'bold 13px IBM Plex Mono, monospace';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
+    const totalW = measureThetaLabel(ctx, angleStr);
+    let x = cx - totalW / 2;
+    ctx.textAlign = 'left';
+    ctx.fillText('θ = ', x, cy);
+    x += ctx.measureText('θ = ').width;
+    drawMathStr(ctx, x, cy, angleStr);
+  }
+
+  function isMathFraction(s) {
+    return parseMathDisplay(s).plain == null;
+  }
+
+  const COORD_FRAC_GAP = 9;
+
+  function measureCoordLabel(ctx, letter, xStr, yStr) {
+    let w = ctx.measureText(`${letter}(`).width + measureMathStr(ctx, xStr);
+    if (isMathFraction(xStr)) w += COORD_FRAC_GAP;
+    w += ctx.measureText(',').width;
+    if (isMathFraction(xStr) || isMathFraction(yStr)) w += COORD_FRAC_GAP;
+    w += measureMathStr(ctx, yStr) + ctx.measureText(')').width;
+    return w;
+  }
+
+  function drawCoordLabelText(ctx, x, y, letter, xStr, yStr) {
+    const midY = y - 11;
+    let cx = x;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${letter}(`, cx, midY);
+    cx += ctx.measureText(`${letter}(`).width;
+    cx += drawMathStr(ctx, cx, midY, xStr);
+    if (isMathFraction(xStr)) cx += COORD_FRAC_GAP;
+    ctx.fillText(',', cx, midY);
+    cx += ctx.measureText(',').width;
+    if (isMathFraction(xStr) || isMathFraction(yStr)) cx += COORD_FRAC_GAP;
+    cx += drawMathStr(ctx, cx, midY, yStr);
+    ctx.fillText(')', cx, midY);
+  }
+
+  /** เครื่องหมาย (x, y) = (cos θ, sin θ) ในแต่ละควอดรัน */
+  const QUADRANT_PAIRS = {
+    1: '(+, +)',
+    2: '(−, +)',
+    3: '(−, −)',
+    4: '(+, −)',
+  };
+
+  const QUADRANT_SIGN_POSITIONS = [
+    { q: 1, deg: 45 },
+    { q: 2, deg: 135 },
+    { q: 3, deg: 225 },
+    { q: 4, deg: 315 },
+  ];
+
+  function quadrantNumber(deg) {
+    const d = normalizeDeg(deg);
+    if (d === 0 || d === 90 || d === 180 || d === 270) return 0;
+    if (d > 0 && d < 90) return 1;
+    if (d > 90 && d < 180) return 2;
+    if (d > 180 && d < 270) return 3;
+    return 4;
+  }
+
+  function getQuadrantPair(deg) {
+    const q = quadrantNumber(deg);
+    return q ? QUADRANT_PAIRS[q] : null;
+  }
+
+  function getQuadrantText(deg) {
+    const q = quadrantNumber(deg);
+    if (!q) return 'แกนพิเศษ';
+    return `ควอดรันที่ ${q} — ${QUADRANT_PAIRS[q]}`;
+  }
+
+  function getQuadrantShort(deg) {
+    const pair = getQuadrantPair(deg);
+    return pair ?? 'แกนพิเศษ';
+  }
+
+  function drawQuadrantSigns(colors) {
+    const r = R * 0.52;
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = colors.muted;
+    ctx.font = '600 14px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const { q, deg } of QUADRANT_SIGN_POSITIONS) {
+      const rad = deg2rad(deg);
+      ctx.fillText(QUADRANT_PAIRS[q], CX + Math.cos(rad) * r, CY - Math.sin(rad) * r);
+    }
+    ctx.restore();
+  }
+
+  /** มุมอ้างอิง (acute) + ควอดรันที่ใช้ตีมุม */
+  function referenceAngleInfo(deg) {
+    const d = normalizeDeg(deg);
+    if (d === 0 || d === 90 || d === 180 || d === 270) {
+      return { isAxis: true, refDeg: 0, quadrant: 0, quadLabel: 'แกนพิเศษ', axisDeg: 0, ccw: true };
+    }
+    if (d > 0 && d < 90) {
+      return { isAxis: false, refDeg: d, quadrant: 1, quadLabel: 'Q1', axisDeg: 0, ccw: true };
+    }
+    if (d > 90 && d < 180) {
+      return { isAxis: false, refDeg: 180 - d, quadrant: 2, quadLabel: 'Q2', axisDeg: 180, ccw: false };
+    }
+    if (d > 180 && d < 270) {
+      return { isAxis: false, refDeg: d - 180, quadrant: 3, quadLabel: 'Q3', axisDeg: 180, ccw: false };
+    }
+    return { isAxis: false, refDeg: 360 - d, quadrant: 4, quadLabel: 'Q4', axisDeg: 0, ccw: false };
+  }
+
+  function refLabelDeg(info) {
+    if (info.isAxis) return 0;
+    if (info.quadrant === 1) return info.refDeg / 2;
+    if (info.quadrant === 2) return 180 - info.refDeg / 2;
+    if (info.quadrant === 3) return 180 + info.refDeg / 2;
+    return 360 - info.refDeg / 2;
+  }
+
+  function formatRefAngleStr(deg) {
+    const info = referenceAngleInfo(deg);
+    if (info.isAxis) return '0°';
+    if (usePiMode) return formatPiAngle(info.refDeg);
+    return `${fmt(info.refDeg, 1)}°`;
+  }
+
+  function drawReferenceAngle(deg, pointColor, colors) {
+    if (!showRefAngle) return;
+    const info = referenceAngleInfo(deg);
+    if (info.isAxis || info.refDeg < 0.5) return;
+
+    const refArcR = REF_ANGLE_ARC_R;
+    const startRad = deg2rad(-info.axisDeg);
+    const endRad = deg2rad(-deg);
+
+    ctx.strokeStyle = pointColor + '99';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    const axisTip = refArcR + 14;
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + Math.cos(startRad) * axisTip, CY - Math.sin(startRad) * axisTip);
+    ctx.stroke();
+
+    ctx.fillStyle = pointColor + '35';
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + Math.cos(startRad) * refArcR, CY - Math.sin(startRad) * refArcR);
+    ctx.arc(CX, CY, refArcR, startRad, endRad, info.ccw);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = pointColor;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(CX, CY, refArcR, startRad, endRad, info.ccw);
+    ctx.stroke();
+
+    const labelDeg = refLabelDeg(info);
+    const lr = refArcR + 16;
+    const lx = CX + Math.cos(deg2rad(-labelDeg)) * lr;
+    const ly = CY - Math.sin(deg2rad(-labelDeg)) * lr;
+    const alphaStr = formatRefAngleStr(deg);
+    drawTrigLabel(`α = ${alphaStr}`, lx, ly, pointColor, colors, 'center');
+  }
+
+  function getActiveAngle() {
+    return activeTarget === 'Q' ? angleDeg2 : angleDeg;
+  }
+
+  function setActiveAngle(deg) {
+    if (activeTarget === 'Q') setAngle2(deg);
+    else setAngle(deg);
+  }
+
+  function nudgeActive(delta) {
+    setActiveAngle(getActiveAngle() + delta);
+  }
+
+  function setActiveTarget(t) {
+    activeTarget = t;
+    updateCompareLayout();
+    updateUI();
+  }
+
+  function syncNudgeTargetUI() {
+    nudgeP.setAttribute('aria-pressed', String(activeTarget === 'P'));
+    nudgeQ.setAttribute('aria-pressed', String(activeTarget === 'Q'));
+  }
+
+  function updateCompareLayout() {
+    const on = compareMode;
+    angleTabs.hidden = !on;
+    angleHeading.hidden = on;
+    singleAngleDisplay.hidden = on;
+    dualSummary.hidden = !on;
+    activeQuadrantWrap.hidden = on;
+    tabP.setAttribute('aria-selected', String(activeTarget === 'P'));
+    tabQ.setAttribute('aria-selected', String(activeTarget === 'Q'));
+    nudgeQ.hidden = !on;
+    nudgeTarget.style.gridTemplateColumns = on ? '1fr 1fr' : '1fr';
+    syncNudgeTargetUI();
+    const who = activeTarget === 'Q' ? 'θ₂' : 'θ';
+    btnCCW.setAttribute('aria-label', `หมุน ${who} ทวนเข็มนาฬิกา 15 องศา (เพิ่มมุม)`);
+    btnCW.setAttribute('aria-label', `หมุน ${who} ตามเข็มนาฬิกา 15 องศา (มุมลบ)`);
+    btnNegate.setAttribute('aria-label', `สลับเครื่องหมาย ${who} (เช่น 45° เป็น −45°)`);
+    refContainer.setAttribute('aria-label',
+      on ? `เลือกมุมสำคัญสำหรับ ${who}` : 'เลือกมุมสำคัญ');
+  }
+
+  function setAngleDisplayEl(el, deg) {
+    if (usePiMode) setMathEl(el, formatPiAngle(deg));
+    else el.textContent = formatAngleLabel(deg);
+  }
+
+  function canvasToMath(x, y) {
+    return { x: (x - CX) / R, y: -(y - CY) / R };
+  }
+
+  function setAngle(deg) {
+    angleDeg = clampTeachingDeg(deg);
+    updateUI();
+    scheduleDraw();
+  }
+
+  function setAngle2(deg) {
+    angleDeg2 = clampTeachingDeg(deg);
+    updateUI();
+    scheduleDraw();
+  }
+
+  function negateActiveAngle() {
+    const d = clampTeachingDeg(getActiveAngle());
+    if (Math.abs(d) < 0.5) {
+      setActiveAngle(0);
+      return;
+    }
+    setActiveAngle(-d);
+  }
+
+  function angularDist(a, b) {
+    const d = Math.abs(normalizeDeg(a) - normalizeDeg(b));
+    return Math.min(d, 360 - d);
+  }
+
+  function pointCanvasPos(deg) {
+    const r = deg2rad(positionDeg(deg));
+    return { x: CX + Math.cos(r) * R, y: CY - Math.sin(r) * R };
+  }
+
+  function resolveDragTarget(mx, my, clickDeg) {
+    if (!compareMode) return 'P';
+    const p = pointCanvasPos(angleDeg);
+    const q = pointCanvasPos(angleDeg2);
+    const dP = Math.hypot(mx - p.x, my - p.y);
+    const dQ = Math.hypot(mx - q.x, my - q.y);
+    if (dQ < HIT_RADIUS && dQ <= dP) return 'Q';
+    if (dP < HIT_RADIUS) return 'P';
+    return angularDist(clickDeg, angleDeg2) < angularDist(clickDeg, angleDeg) ? 'Q' : 'P';
+  }
+
+  function applyDragAngle(deg) {
+    if (dragTarget === 'Q') {
+      if (compareMode && activeTarget !== 'Q') {
+        activeTarget = 'Q';
+        updateCompareLayout();
+      }
+      setAngle2(deg);
+    } else {
+      if (compareMode && activeTarget !== 'P') {
+        activeTarget = 'P';
+        updateCompareLayout();
+      }
+      setAngle(deg);
+    }
+  }
+
+  function toggleTrig(key) {
+    showTrig[key] = !showTrig[key];
+    const btn = { cos: btnShowCos, sin: btnShowSin, tan: btnShowTan }[key];
+    btn.setAttribute('aria-pressed', String(showTrig[key]));
+    btn.setAttribute('aria-label', showTrig[key] ? `แสดง ${key}` : `ซ่อน ${key}`);
+    scheduleDraw();
+  }
+
+  function updateUI() {
+    const rad = deg2rad(positionDeg(angleDeg));
+    const c = Math.cos(rad);
+    const s = Math.sin(rad);
+    const exact = nearestExact(angleDeg);
+
+    if (usePiMode) setMathEl(degVal, formatPiAngle(angleDeg));
+    else degVal.textContent = formatAngleLabel(angleDeg);
+
+    const xStr = displayVal(c, exact?.c);
+    const yStr = displayVal(s, exact?.s);
+    srAngle.textContent = usePiMode
+      ? `มุม ${formatPiAngle(angleDeg)}, พิกัด P (${xStr}, ${yStr})`
+      : `มุม ${formatAngleLabel(angleDeg)}, พิกัด P (${xStr}, ${yStr})`;
+
+    setAngleDisplayEl(degValMiniP, angleDeg);
+    quadMiniP.textContent = getQuadrantShort(angleDeg);
+    quadrantBadge.textContent = getQuadrantText(angleDeg);
+
+    if (compareMode) {
+      const rad2 = deg2rad(positionDeg(angleDeg2));
+      const c2 = Math.cos(rad2);
+      const s2 = Math.sin(rad2);
+      const exact2 = nearestExact(angleDeg2);
+
+      setAngleDisplayEl(degValMiniQ, angleDeg2);
+      quadMiniQ.textContent = getQuadrantShort(angleDeg2);
+    }
+
+    const activePos = positionDeg(getActiveAngle());
+    refContainer.querySelectorAll('.ref-btn').forEach(btn => {
+      const ref = parseFloat(btn.dataset.deg);
+      const active = Math.abs(ref - activePos) < 0.6;
+      btn.setAttribute('aria-pressed', String(active));
+    });
+  }
+
+  function scheduleDraw() {
+    if (drawPending) return;
+    drawPending = true;
+    requestAnimationFrame(() => {
+      drawPending = false;
+      draw();
+    });
+  }
+
+  function nearestRefDeg(deg, maxDiff = 0.6) {
+    const d = normalizeDeg(deg);
+    let best = 0;
+    let bestDiff = Infinity;
+    for (const ref of REF_ANGLES) {
+      const diff = Math.min(Math.abs(d - ref), 360 - Math.abs(d - ref));
+      if (diff < bestDiff) { bestDiff = diff; best = ref; }
+    }
+    return bestDiff <= maxDiff ? best : null;
+  }
+
+  function formatPiAngle(deg) {
+    const sign = deg < -0.005 ? '−' : '';
+    const ad = Math.abs(deg);
+    const live = isAngleInteracting();
+    if (!live) {
+      const ref = nearestRefDeg(ad, 0.02);
+      if (ref !== null && PI_ANGLE_LABELS[ref] !== undefined) return sign + PI_ANGLE_LABELS[ref];
+    }
+    const coef = ad / 180;
+    if (coef < 0.005) return '0';
+    if (!live && Math.abs(coef - 1) < 0.005) return sign + 'π';
+    if (!live && Math.abs(coef - 2) < 0.005) return sign + '2π';
+    return `${sign}${fmt(coef, 3)}π`;
+  }
+
+  /** แสดงองศาแบบทศนิยม 1 ตำแหน่งเสมอ — ไม่สลับ 45° / 44.9° ตอนหมุน */
+  function formatAngleLabel(deg) {
+    if (usePiMode) return formatPiAngle(deg);
+    const n = Math.round(deg * 10) / 10;
+    const absN = Math.abs(n);
+    return (n < 0 ? '−' : '') + absN.toFixed(1) + '°';
+  }
+
+  function updatePiModeUI() {
+    btnPiMode.setAttribute('aria-pressed', String(usePiMode));
+    btnPiMode.textContent = usePiMode ? '°' : 'π';
+    refContainer.querySelectorAll('.ref-btn').forEach(btn => {
+      const d = parseFloat(btn.dataset.deg);
+      if (usePiMode) btn.innerHTML = mathToHTML(formatPiAngle(d));
+      else btn.textContent = `${d}°`;
+    });
+    updateCompareLayout();
+  }
+
+  function drawAngleSector(cx, cy, arcR, thetaDeg, accent, colors, showOrigin) {
+    const mag = Math.abs(thetaDeg);
+    if (mag <= 0.5) return;
+
+    const fill = accent + '28';
+    const negative = thetaDeg < 0;
+    const endCanvas = deg2rad(negative ? mag : -mag);
+    const clockwise = true;
+
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + arcR, cy);
+    if (mag >= 179.5) {
+      ctx.arc(cx, cy, arcR, 0, Math.PI * 2);
+    } else {
+      ctx.arc(cx, cy, arcR, 0, endCanvas, clockwise);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, arcR, 0, endCanvas, clockwise);
+    ctx.stroke();
+
+    if (showOrigin) {
+      ctx.strokeStyle = colors.cos + '99';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + R, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = colors.cos;
+      ctx.beginPath();
+      ctx.arc(cx + R, cy, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = colors.surface;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.font = '11px IBM Plex Mono, monospace';
+      ctx.fillStyle = colors.cos;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('(1, 0)', cx + R, cy - 10);
+      ctx.textAlign = 'start';
+      ctx.textBaseline = 'alphabetic';
+    }
+  }
+
+  function drawAngleLabel(deg, accent, colors, symbol, hideFullLabel = false) {
+    const mag = Math.abs(deg);
+    if (hideFullLabel || mag <= 0.5 || mag >= 179.5) return;
+
+    const half = deg2rad(deg / 2);
+    const arcR = 52;
+    let labelR = arcR + 16;
+    const pos = positionDeg(deg);
+    if (pos > 160 && pos < 200) labelR = arcR + 10;
+    if (pos > 340 || pos < 20) labelR = arcR + 22;
+
+    const lx = CX + Math.cos(half) * labelR;
+    const ly = CY - Math.sin(half) * labelR;
+    const angleStr = formatAngleLabel(deg);
+
+    ctx.font = 'bold 13px IBM Plex Mono, monospace';
+    ctx.textBaseline = 'middle';
+    const prefix = `${symbol} = `;
+    const tw = ctx.measureText(prefix).width + measureMathStr(ctx, angleStr);
+    const boxH = parseMathDisplay(angleStr).plain != null ? 18 : 24;
+    const pad = 5;
+    ctx.fillStyle = colors.canvasBg + 'dd';
+    ctx.fillRect(lx - tw / 2 - pad, ly - boxH / 2, tw + pad * 2, boxH);
+
+    ctx.fillStyle = accent;
+    ctx.textAlign = 'left';
+    const startX = lx - tw / 2;
+    ctx.fillText(prefix, startX, ly);
+    drawMathStr(ctx, startX + ctx.measureText(prefix).width, ly, angleStr);
+
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawTrigLabel(text, x, y, trigColor, colors, align = 'left') {
+    ctx.font = 'bold 12px IBM Plex Mono, monospace';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = align;
+    const tw = ctx.measureText(text).width;
+    const pad = 4;
+    const boxH = 17;
+    let bx = align === 'center' ? x - tw / 2 - pad : align === 'right' ? x - tw - pad : x - pad;
+    ctx.fillStyle = colors.canvasBg + 'ee';
+    ctx.fillRect(bx, y - boxH / 2, tw + pad * 2, boxH);
+    ctx.strokeStyle = trigColor + '55';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, y - boxH / 2, tw + pad * 2, boxH);
+    ctx.fillStyle = trigColor;
+    ctx.fillText(text, align === 'center' ? x : align === 'right' ? x - pad : x, y);
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawPointFigure(deg, colors, cfg) {
+    const posDeg = positionDeg(deg);
+    const rad = deg2rad(posDeg);
+    const px = CX + Math.cos(rad) * R;
+    const py = CY - Math.sin(rad) * R;
+    const { color, arcR, symbol, letter, showOrigin = false } = cfg;
+    const mag = Math.abs(deg);
+    let useRefOnly = false;
+
+    if (mag > 0.5 && mag < 359.5) {
+      const refInfo = referenceAngleInfo(posDeg);
+      useRefOnly = showRefAngle && !refInfo.isAxis;
+
+      if (useRefOnly) {
+        drawReferenceAngle(posDeg, color, colors);
+      } else if (!showRefAngle) {
+        drawAngleSector(CX, CY, arcR, deg, color, colors, showOrigin);
+      }
+    }
+
+    if (showTrig.cos) {
+      ctx.strokeStyle = colors.cos;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(CX, py);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    if (showTrig.sin) {
+      ctx.strokeStyle = colors.sin;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(px, CY);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+
+    if (showTrig.cos && showTrig.sin) {
+      ctx.fillStyle = color + '14';
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.lineTo(px, CY);
+      ctx.lineTo(px, py);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    if (showTrig.cos) {
+      const cosX = (CX + px) / 2 - 18;
+      const cosY = py + (py < CY ? -12 : 20);
+      drawTrigLabel(`cos ${symbol}`, cosX, cosY, colors.cos, colors);
+    }
+    if (showTrig.sin) {
+      const sinX = px + (px > CX ? 10 : -58);
+      const sinY = (CY + py) / 2 + 4;
+      drawTrigLabel(`sin ${symbol}`, sinX, sinY, colors.sin, colors);
+    }
+
+    drawAngleLabel(deg, color, colors, symbol, useRefOnly);
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(px, py, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = colors.surface;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = 'bold 14px Noto Sans Thai, sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(letter, px + 12, py - 10);
+
+    if (showCoords) drawCoordLabel(px, py, rad, deg, letter, colors, color);
+
+    if (showTrig.tan && Math.abs(Math.cos(rad)) > 0.05) {
+      const tanY = CY - Math.tan(rad) * R;
+      const clampedTanY = Math.max(CY - R * 1.8, Math.min(CY + R * 1.8, tanY));
+      ctx.strokeStyle = colors.tan;
+      ctx.globalAlpha = 0.75;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(CX + R, CY);
+      ctx.lineTo(CX + R, clampedTanY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      const tanLabelY = (CY + clampedTanY) / 2;
+      const tanLabelX = CX + R + (letter === 'Q' ? 8 : 6);
+      drawTrigLabel(`tan ${symbol}`, tanLabelX, tanLabelY, colors.tan, colors);
+    }
+
+    return { px, py, rad };
+  }
+
+  function drawCoordLabel(px, py, rad, deg, letter, colors, pointColor) {
+    const exact = nearestExact(deg);
+    const c = Math.cos(rad);
+    const s = Math.sin(rad);
+    const xStr = displayVal(c, exact?.c);
+    const yStr = displayVal(s, exact?.s);
+
+    ctx.font = 'bold 12px IBM Plex Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+
+    const tw = measureCoordLabel(ctx, letter, xStr, yStr);
+    const boxH = 22;
+    let lx = px + 14;
+    let ly = py - 8;
+    if (px > CX && py < CY) { lx = px + 10; ly = py - 10; }
+    else if (px < CX && py < CY) { lx = px - tw - 10; ly = py - 10; }
+    else if (px < CX && py > CY) { lx = px - tw - 10; ly = py + 20; }
+    else { lx = px + 10; ly = py + 20; }
+
+    const pad = 5;
+    ctx.fillStyle = colors.canvasBg + 'ee';
+    ctx.fillRect(lx - pad, ly - boxH, tw + pad * 2, boxH);
+    ctx.strokeStyle = pointColor;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(lx - pad, ly - boxH, tw + pad * 2, boxH);
+
+    ctx.fillStyle = colors.text;
+    drawCoordLabelText(ctx, lx, ly, letter, xStr, yStr);
+
+    ctx.font = '11px IBM Plex Mono, monospace';
+    ctx.textBaseline = 'middle';
+    if (showTrig.cos) {
+      ctx.fillStyle = colors.cos;
+      drawMathStr(ctx, (CX + px) / 2 - measureMathStr(ctx, xStr) / 2, CY + 18, xStr);
+    }
+    if (showTrig.sin) {
+      ctx.fillStyle = colors.sin;
+      drawMathStr(ctx, px - measureMathStr(ctx, yStr) - 10, (CY + py) / 2 + 4, yStr);
+    }
+
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawGrid(colors) {
+    ctx.strokeStyle = colors.grid;
+    ctx.lineWidth = 1;
+
+    for (let i = -2; i <= 2; i++) {
+      const px = CX + i * R;
+      const py = CY + i * R;
+      ctx.beginPath();
+      ctx.moveTo(px, CY - R - 30);
+      ctx.lineTo(px, CY + R + 30);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(CX - R - 30, py);
+      ctx.lineTo(CX + R + 30, py);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(CX - R - 40, CY);
+    ctx.lineTo(CX + R + 40, CY);
+    ctx.moveTo(CX, CY - R - 40);
+    ctx.lineTo(CX, CY + R + 40);
+    ctx.stroke();
+
+    ctx.fillStyle = colors.muted;
+    ctx.font = '14px Noto Sans Thai, sans-serif';
+    ctx.fillText('x', CX + R + 36, CY + 5);
+    ctx.fillText('y', CX - 14, CY - R - 10);
+
+    ctx.font = '12px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // แกน x — ใต้แกนเล็กน้อย; เลข 1 ขยับออกจากจุด (1,0) นิดเดียว
+    const xLabelY = CY + 22;
+    ctx.fillText('1', CX + R + 5, xLabelY + 1);
+    ctx.fillText('-1', CX - R, xLabelY);
+    ctx.fillText('0', CX - 11, xLabelY);
+
+    // แกน y — เลข 1 ขยับซ้ายจาก tick นิดเดียว
+    ctx.textAlign = 'right';
+    ctx.fillText('1', CX - 17, CY - R + 2);
+    ctx.fillText('-1', CX - 14, CY + R);
+
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+
+    drawQuadrantSigns(colors);
+  }
+
+  function draw() {
+    const colors = getColors();
+    ctx.clearRect(0, 0, CSS_SIZE, CSS_SIZE);
+    ctx.fillStyle = colors.canvasBg;
+    ctx.fillRect(0, 0, CSS_SIZE, CSS_SIZE);
+
+    drawGrid(colors);
+
+    ctx.strokeStyle = colors.circle;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(CX, CY, R, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (compareMode) {
+      drawPointFigure(angleDeg2, colors, {
+        color: colors.point2,
+        arcR: 38,
+        symbol: 'θ₂',
+        letter: 'Q',
+        showOrigin: false,
+      });
+    }
+
+    drawPointFigure(angleDeg, colors, {
+      color: colors.point,
+      arcR: 52,
+      symbol: 'θ',
+      letter: 'P',
+      showOrigin: true,
+    });
+
+    ctx.fillStyle = colors.muted;
+    ctx.beginPath();
+    ctx.arc(CX, CY, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function angleFromEvent(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (CSS_SIZE / rect.width);
+    const my = (e.clientY - rect.top) * (CSS_SIZE / rect.height);
+    const m = canvasToMath(mx, my);
+    const clickNorm = normalizeDeg(rad2deg(Math.atan2(m.y, m.x)));
+    const current = dragTarget === 'Q' ? angleDeg2 : angleDeg;
+    return signedFromClick(clickNorm, current);
+  }
+
+  function nudgeAngle(delta) {
+    setAngle(angleDeg + delta);
+  }
+
+  function eventCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      mx: (e.clientX - rect.left) * (CSS_SIZE / rect.width),
+      my: (e.clientY - rect.top) * (CSS_SIZE / rect.height),
+    };
+  }
+
+  function startDrag(e) {
+    const { mx, my } = eventCanvasPos(e);
+    const clickDeg = angleFromEvent(e);
+    dragTarget = resolveDragTarget(mx, my, clickDeg);
+    dragging = true;
+    applyDragAngle(clickDeg);
+  }
+
+  REF_ANGLES.forEach(deg => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ref-btn';
+    btn.dataset.deg = deg;
+    btn.textContent = `${deg}°`;
+    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-label', `ตั้งมุม ${deg} องศา`);
+    btn.addEventListener('click', () => setActiveAngle(deg));
+    refContainer.appendChild(btn);
+  });
+
+  tabP.addEventListener('click', () => setActiveTarget('P'));
+  tabQ.addEventListener('click', () => setActiveTarget('Q'));
+  nudgeP.addEventListener('click', () => setActiveTarget('P'));
+  nudgeQ.addEventListener('click', () => setActiveTarget('Q'));
+
+  canvas.addEventListener('mousedown', e => startDrag(e));
+  canvas.addEventListener('mousemove', e => {
+    if (dragging) applyDragAngle(angleFromEvent(e));
+  });
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    dragTarget = null;
+    updateUI();
+    scheduleDraw();
+  });
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    startDrag(e.touches[0]);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (dragging) applyDragAngle(angleFromEvent(e.touches[0]));
+  }, { passive: false });
+  window.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    dragTarget = null;
+    updateUI();
+    scheduleDraw();
+  });
+
+  function handleKey(e) {
+    if (document.activeElement !== canvas) return;
+
+    const step = e.shiftKey ? 15 : 1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (compareMode && e.altKey && activeTarget !== 'Q') setActiveTarget('Q');
+      nudgeActive(step);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (compareMode && e.altKey && activeTarget !== 'Q') setActiveTarget('Q');
+      nudgeActive(-step);
+    }
+  }
+
+  canvas.addEventListener('keydown', handleKey);
+
+  btnCW.addEventListener('click', () => nudgeActive(-15));
+  btnCCW.addEventListener('click', () => nudgeActive(15));
+  btnNegate.addEventListener('click', () => negateActiveAngle());
+
+  $('btnReset').addEventListener('click', () => {
+    stopAnimate();
+    setAngle(0);
+  });
+
+  btnCoords.addEventListener('click', () => {
+    showCoords = !showCoords;
+    btnCoords.setAttribute('aria-pressed', String(showCoords));
+    btnCoords.textContent = showCoords ? '📍 ซ่อน' : '📍 พิกัด';
+    scheduleDraw();
+  });
+
+  function togglePiMode() {
+    usePiMode = !usePiMode;
+    updatePiModeUI();
+    updateUI();
+    scheduleDraw();
+  }
+
+  btnPiMode.addEventListener('click', togglePiMode);
+
+  btnRefAngle.addEventListener('click', () => {
+    showRefAngle = !showRefAngle;
+    btnRefAngle.setAttribute('aria-pressed', String(showRefAngle));
+    scheduleDraw();
+  });
+
+  btnCompare.addEventListener('click', () => {
+    compareMode = !compareMode;
+    btnCompare.setAttribute('aria-pressed', String(compareMode));
+    btnCompare.textContent = compareMode ? '⚖ ปิด' : '⚖ 2 มุม';
+    if (compareMode) {
+      stopAnimate();
+      activeTarget = 'Q';
+      panelAngle.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+    } else {
+      activeTarget = 'P';
+    }
+    updateCompareLayout();
+    updateUI();
+    scheduleDraw();
+  });
+
+  btnShowCos.addEventListener('click', () => toggleTrig('cos'));
+  btnShowSin.addEventListener('click', () => toggleTrig('sin'));
+  btnShowTan.addEventListener('click', () => toggleTrig('tan'));
+
+  function stopAnimate() {
+    animating = false;
+    btnAnim.textContent = '▶ หมุน';
+    btnAnim.setAttribute('aria-pressed', 'false');
+    if (animId) cancelAnimationFrame(animId);
+    updateUI();
+    scheduleDraw();
+  }
+
+  btnAnim.addEventListener('click', () => {
+    if (reducedMotion) {
+      nudgeAngle(45);
+      return;
+    }
+    if (animating) { stopAnimate(); return; }
+    animating = true;
+    btnAnim.textContent = '⏸ หยุด';
+    btnAnim.setAttribute('aria-pressed', 'true');
+    let last = performance.now();
+    function loop(now) {
+      if (!animating) return;
+      setAngle(angleDeg + 30 * ((now - last) / 1000));
+      last = now;
+      animId = requestAnimationFrame(loop);
+    }
+    animId = requestAnimationFrame(loop);
+  });
+
+  window.addEventListener('resize', () => {
+    setupCanvas();
+    scheduleDraw();
+  });
+
+  setupCanvas();
+  updatePiModeUI();
+  updateCompareLayout();
+  setAngle(45);
+})();
+</script>
+</body>
+</html>

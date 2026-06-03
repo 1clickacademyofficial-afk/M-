@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sin θ = cos(90° − θ) — มุม 30° 45° 60°</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f0e8;
+      --surface: #fffcf7;
+      --surface2: #ebe4d9;
+      --border: #c9bfb0;
+      --text: #1c1917;
+      --muted: #57534e;
+      --accent: #1d4ed8;
+      --cos: #c41e3a;
+      --sin: #0d7a45;
+      --tan: #b45309;
+      --point: #d4620a;
+      --focus-ring: #1d4ed8;
+      --canvas-bg: #fffcf7;
+      --badge-bg: #e7e5e4;
+      --on-accent: #fff;
+      --on-tan: #1c1917;
+      --touch-min: 44px;
+      --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+      --font-sans: 'Noto Sans Thai', 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1917;
+        --surface: #292524;
+        --surface2: #44403c;
+        --border: #57534e;
+        --text: #fafaf9;
+        --muted: #a8a29e;
+        --accent: #60a5fa;
+        --cos: #fb7185;
+        --sin: #34d399;
+        --tan: #fcd34d;
+        --point: #fb923c;
+        --focus-ring: #60a5fa;
+        --canvas-bg: #292524;
+        --badge-bg: #44403c;
+        --on-tan: #1c1917;
+      }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    [hidden] { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 1rem;
+      z-index: 100;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: var(--on-accent);
+      border-radius: 0 0 6px 6px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 0;
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.75rem 1rem 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    header h1 {
+      font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin-top: 0.35rem;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    header a { color: var(--accent); font-weight: 600; }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .canvas-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: crosshair;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      touch-action: none;
+      background: var(--canvas-bg);
+      image-rendering: auto;
+    }
+
+    canvas:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 3px;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      margin-top: 0.65rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .legend .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .legend .l-cos .dot { background: var(--cos); }
+    .legend .l-sin .dot { background: var(--sin); }
+    .legend .l-tan .dot { background: var(--tan); }
+    .legend .l-sin strong {
+      color: var(--sin);
+      font-weight: 600;
+    }
+
+    aside {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+
+    .panel h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .angle-equation {
+      margin-bottom: 0.5rem;
+      padding: 0.85rem 0.65rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .eq-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.45rem 0.55rem;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .eq-part {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      min-width: 4.5rem;
+      border: 2px solid transparent;
+    }
+
+    .eq-part.theta-part {
+      background: color-mix(in srgb, var(--point) 14%, var(--surface));
+      border-color: color-mix(in srgb, var(--point) 35%, transparent);
+    }
+
+    .eq-part.comp-part {
+      background: color-mix(in srgb, var(--sin) 14%, var(--surface));
+      border-color: color-mix(in srgb, var(--sin) 35%, transparent);
+    }
+
+    .eq-part.fixed-part {
+      background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+      border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+      min-width: 3.5rem;
+    }
+
+    .eq-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .eq-part.theta-part .eq-name { color: var(--point); }
+    .eq-part.comp-part .eq-name { color: var(--sin); }
+    .eq-part.fixed-part .eq-name { color: var(--accent); font-size: 0.78rem; }
+
+    .eq-num {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.05rem;
+      line-height: 1;
+    }
+
+    .eq-val {
+      font-size: clamp(1.55rem, 5vw, 1.9rem);
+      font-weight: 700;
+      min-width: 2ch;
+      text-align: center;
+    }
+
+    .eq-part.theta-part .eq-val { color: var(--point); }
+    .eq-part.comp-part .eq-val { color: var(--sin); }
+    .eq-part.fixed-part .eq-val { color: var(--accent); }
+
+    .eq-deg {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .eq-op {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      padding: 0 0.1rem;
+    }
+
+    .eq-hint {
+      margin-top: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .eq-hint strong { color: var(--accent); }
+
+    .values-grid { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+
+    .value-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.75rem;
+      background: var(--surface2);
+      border-radius: 6px;
+      border-left: 4px solid;
+      min-height: var(--touch-min);
+    }
+
+    .value-row.sin { border-color: var(--sin); }
+    .value-row.cos { border-color: var(--cos); }
+
+    .value-row .label { font-weight: 600; font-size: 0.9rem; }
+    .value-row.sin .label { color: var(--sin); }
+    .value-row.cos .label { color: var(--cos); }
+
+    .value-row .num {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+    }
+
+    .value-row.sin .num { color: var(--sin); }
+    .value-row.cos .num { color: var(--sin); }
+
+    .value-row .hint {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 0.1rem;
+    }
+
+    .match-badge {
+      display: inline-block;
+      margin-top: 0.65rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: color-mix(in srgb, var(--sin) 12%, var(--surface));
+      color: var(--sin);
+      text-align: center;
+      width: 100%;
+    }
+
+    .ref-heading {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .ref-angles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+    }
+
+    .ref-btn {
+      min-height: var(--touch-min);
+      padding: 0.4rem 0.25rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .ref-btn:hover { background: var(--surface2); border-color: var(--accent); }
+
+    .ref-btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .ref-btn[aria-pressed="true"] {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .slider-wrap { margin-top: 1rem; }
+
+    .slider-wrap label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 12px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--surface2);
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 4px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--point);
+      border: 3px solid var(--surface);
+      box-shadow: 0 1px 4px color-mix(in srgb, var(--text) 25%, transparent);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--point);
+      border: 3px solid var(--surface);
+      box-shadow: 0 1px 4px color-mix(in srgb, var(--text) 25%, transparent);
+      cursor: pointer;
+    }
+
+    .mwrap {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      gap: 1px;
+    }
+
+    .mfrac {
+      display: inline-grid;
+      grid-template-rows: auto 1px auto;
+      align-items: center;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 0.78em;
+      line-height: 1.05;
+      padding: 0 2px;
+    }
+
+    .mnum, .mden { padding: 0 3px; white-space: nowrap; }
+    .mline { background: currentColor; height: 1px; width: 100%; min-width: 1.1em; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+
+<a href="#controls" class="skip-link">ข้ามไปส่วนควบคุม</a>
+
+<header>
+  <h1>sin θ = cos(90° − θ)</h1>
+</header>
+
+<main>
+  <section class="canvas-wrap" aria-labelledby="canvas-heading">
+    <h2 id="canvas-heading" class="sr-only">ภาพสามเหลี่ยมมุมฉาก</h2>
+    <canvas id="canvas" width="560" height="380" tabindex="0"
+      role="img"
+      aria-label="สามเหลี่ยมมุมฉาก มุม 30 องศา"></canvas>
+    <div class="legend">
+      <span class="l-cos"><span class="dot"></span>ชิด</span>
+      <span class="l-sin"><span class="dot"></span>ข้าม = <strong>ชิด(บน)</strong></span>
+      <span class="l-tan"><span class="dot"></span>ฉาก</span>
+    </div>
+  </section>
+
+  <aside id="controls" aria-label="แผงควบคุมและค่า">
+    <div class="panel">
+      <h2>มุมในสามเหลี่ยม</h2>
+      <div class="angle-equation" id="anglePanel">
+        <div class="eq-row">
+          <span class="eq-part theta-part">
+            <span class="eq-name">θ</span>
+            <span class="eq-num"><span class="eq-val" id="degTheta">30</span><span class="eq-deg">°</span></span>
+          </span>
+          <span class="eq-op">+</span>
+          <span class="eq-part comp-part">
+            <span class="eq-name">90° − θ</span>
+            <span class="eq-num"><span class="eq-val" id="degComp">60</span><span class="eq-deg">°</span></span>
+          </span>
+          <span class="eq-op">=</span>
+          <span class="eq-part fixed-part">
+            <span class="eq-name">รวม</span>
+            <span class="eq-num"><span class="eq-val">90</span><span class="eq-deg">°</span></span>
+          </span>
+        </div>
+        <p class="eq-hint">θ ขึ้น → 90°−θ ลง · รวมกันได้ <strong>90°</strong> เสมอ</p>
+        <span class="sr-only" id="srAngle" aria-live="polite">มุม 30 องศา บวก 60 องศา ได้ 90 องศา</span>
+      </div>
+
+      <div class="values-grid">
+        <div class="value-row sin">
+          <span class="label">sin(θ)<span class="hint">ข้าม ÷ ฉาก</span></span>
+          <span class="num" id="valSin">—</span>
+        </div>
+        <div class="value-row cos">
+          <span class="label">cos(90° − θ)<span class="hint">ชิด(บน) ÷ ฉาก</span></span>
+          <span class="num" id="valCos">—</span>
+        </div>
+      </div>
+
+      <p class="match-badge" id="matchBadge">∴ sin(θ) = cos(90° − θ)</p>
+
+      <h2 class="ref-heading">มุมสำคัญ</h2>
+      <div class="ref-angles" id="refAngles" role="group" aria-label="เลือกมุมสำคัญ"></div>
+
+      <div class="slider-wrap">
+        <label for="slider">ปรับมุม θ</label>
+        <input type="range" id="slider" min="5" max="85" value="30" step="0.1"
+               aria-valuemin="5" aria-valuemax="85" aria-valuenow="30"
+               aria-valuetext="30 องศา">
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const CSS_W = 560;
+  const CSS_H = 380;
+  const ORIGIN_X = 88;
+  const ORIGIN_Y = CSS_H - 52;
+  const BOX_W = CSS_W - ORIGIN_X - 108;
+  const BOX_H = CSS_H - 52 - 56;
+  const SNAP = [30, 45, 60];
+  const SNAP_TOL = 2;
+  const LERP = 0.22;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('slider');
+  const degTheta = document.getElementById('degTheta');
+  const degComp = document.getElementById('degComp');
+  const srAngle = document.getElementById('srAngle');
+  const valSin = document.getElementById('valSin');
+  const valCos = document.getElementById('valCos');
+  const refContainer = document.getElementById('refAngles');
+
+  let dpr = 1;
+  let W = CSS_W;
+  let H = CSS_H;
+  let theta = 30;
+  let thetaTarget = 30;
+  let dragging = false;
+  let colors = null;
+  let drawPending = false;
+  let animId = null;
+  let pointerRaf = null;
+  let lastPanelDeg = -1;
+  let lastRefDeg = -1;
+  let lastSinStr = '';
+  let lastCosStr = '';
+  let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const EXACT = {
+    30: { s: '1/2', c: '√3/2' },
+    45: { s: '√2/2', c: '√2/2' },
+    60: { s: '√3/2', c: '1/2' },
+  };
+
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', e => {
+    reducedMotion = e.matches;
+  });
+
+  function fmtDeg(d, dec = 1) {
+    const r = Math.round(d * 10 ** dec) / 10 ** dec;
+    return Number.isInteger(r) ? String(r) : r.toFixed(dec);
+  }
+
+  /** คู่มุมที่รวม 90° พอดี — ไม่ให้ปัดแยกแล้วกระพริบ */
+  function anglePair(deg) {
+    const t = Math.round(deg);
+    return { t, c: 90 - t };
+  }
+
+  function setTrigVal(el, str) {
+    if (str.indexOf('<') >= 0) {
+      if (el.innerHTML !== str) el.innerHTML = str;
+    } else if (el.textContent !== str) {
+      el.textContent = str;
+    }
+  }
+
+  function clamp(d) { return Math.max(5, Math.min(85, d)); }
+
+  function snapSpecial(d) {
+    for (const r of SNAP) {
+      if (Math.abs(d - r) <= SNAP_TOL) return r;
+    }
+    return d;
+  }
+
+  function nearestExact(deg) {
+    for (const r of SNAP) {
+      if (Math.abs(deg - r) <= 0.6) return EXACT[r];
+    }
+    return null;
+  }
+
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    const v = n => s.getPropertyValue(n).trim();
+    colors = {
+      canvasBg: v('--canvas-bg'),
+      cos: v('--cos'),
+      sin: v('--sin'),
+      tan: v('--tan'),
+      text: v('--text'),
+      muted: v('--muted'),
+      point: v('--point'),
+      surface: v('--surface'),
+      border: v('--border'),
+    };
+  }
+
+  function setupCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = Math.round(CSS_W * dpr);
+    canvas.height = Math.round(CSS_H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    W = CSS_W;
+    H = CSS_H;
+    readColors();
+  }
+
+  function mathHTML(s) {
+    if (!s || s.indexOf('/') < 0) return s;
+    const i = s.indexOf('/');
+    return `<span class="mwrap"><span class="mfrac"><span class="mnum">${s.slice(0, i)}</span><span class="mline"></span><span class="mden">${s.slice(i + 1)}</span></span></span>`;
+  }
+
+  function triGeometry(deg) {
+    const rad = deg * Math.PI / 180;
+    const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
+    const scale = Math.min(BOX_W / cosA, BOX_H / sinA);
+    const adj = cosA * scale;
+    const opp = sinA * scale;
+    const ox = ORIGIN_X;
+    const oy = ORIGIN_Y;
+    const O = { x: ox, y: oy };
+    const R = { x: ox + adj, y: oy };
+    const T = { x: ox + adj, y: oy - opp };
+    return { O, R, T, rad, adj, opp };
+  }
+
+  function drawSideLabel(lines, x, y, color, align) {
+    ctx.textAlign = align || 'center';
+    ctx.textBaseline = 'middle';
+    const arr = Array.isArray(lines) ? lines : [lines];
+    const lh = 17;
+    const startY = y - ((arr.length - 1) * lh) / 2;
+    arr.forEach((line, i) => {
+      ctx.font = i === 1
+        ? '600 12px "Noto Sans Thai", sans-serif'
+        : '700 14px "Noto Sans Thai", sans-serif';
+      ctx.fillStyle = color;
+      ctx.globalAlpha = i === 1 ? 0.9 : 1;
+      ctx.fillText(line, x, startY + i * lh);
+      ctx.globalAlpha = 1;
+    });
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawTextBadge(text, x, y, color, bg, align) {
+    ctx.font = '700 15px "IBM Plex Mono", monospace';
+    ctx.textAlign = align || 'center';
+    ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(text).width;
+    const padX = 8;
+    const bh = 24;
+    let bx = x - tw / 2 - padX;
+    if (align === 'left') bx = x - padX;
+    else if (align === 'right') bx = x - tw - padX;
+    const by = y - bh / 2;
+
+    ctx.fillStyle = bg;
+    ctx.globalAlpha = 0.96;
+    ctx.fillRect(bx, by, tw + padX * 2, bh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx + 0.5, by + 0.5, tw + padX * 2 - 1, bh - 1);
+
+    ctx.fillStyle = color;
+    ctx.fillText(text, align === 'left' ? x : align === 'right' ? x - padX : x, y);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawRightMark(rx, ry, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(Math.round(rx - size) + 0.5, Math.round(ry - size) + 0.5, size, size);
+  }
+
+  function drawAngleWithLabel(cx, cy, r, a0, a1, color, label, midAng, labelDist, bg) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, a0, a1, false);
+    ctx.stroke();
+    const lx = cx + Math.cos(midAng) * labelDist;
+    const ly = cy + Math.sin(midAng) * labelDist;
+    drawTextBadge(label, lx, ly, color, bg, 'center');
+  }
+
+  function colorMixAlpha(hex, alpha) {
+    const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
+    return hex.length === 7 ? hex + a : hex;
+  }
+
+  function drawSharedSide(R, T, c) {
+    ctx.strokeStyle = c.sin;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(R.x, R.y);
+    ctx.lineTo(T.x, T.y);
+    ctx.stroke();
+  }
+
+  function draw() {
+    if (!colors) readColors();
+    const c = colors;
+    const comp = 90 - theta;
+    const { O, R, T, rad, adj, opp } = triGeometry(theta);
+
+    ctx.fillStyle = c.canvasBg;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.strokeStyle = c.cos;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(O.x, O.y);
+    ctx.lineTo(R.x, R.y);
+    ctx.stroke();
+    drawSideLabel('ชิด', (O.x + R.x) / 2, O.y + 20, c.cos);
+
+    drawSharedSide(R, T, c);
+    const oppLabelX = R.x + Math.min(26, Math.max(12, (W - R.x) * 0.35));
+    drawSideLabel(['ข้าม', 'ชิด(บน)'], oppLabelX, (R.y + T.y) / 2, c.sin, 'left');
+
+    ctx.strokeStyle = c.tan;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(O.x, O.y);
+    ctx.lineTo(T.x, T.y);
+    ctx.stroke();
+    const hypMidX = (O.x + T.x) / 2;
+    const hypMidY = (O.y + T.y) / 2;
+    drawSideLabel('ฉาก', hypMidX - 34, hypMidY - (theta > 55 ? 8 : 14), c.tan);
+
+    const markSize = Math.min(13, adj * 0.35, opp * 0.12);
+    drawRightMark(R.x, R.y, Math.max(9, markSize), c.text);
+
+    const { t: tDeg, c: cDeg } = anglePair(theta);
+    const tStr = `θ = ${tDeg}°`;
+    const cStr = `90° − θ = ${cDeg}°`;
+
+    const arcR = Math.min(40, adj * 0.58, opp * 0.24);
+    if (arcR > 12) {
+      const midT = -rad / 2;
+      drawAngleWithLabel(O.x, O.y, arcR, -rad, 0, c.point, tStr, midT, arcR + 38, c.canvasBg);
+    }
+
+    const arcR2 = Math.min(36, adj * 0.52, opp * 0.22);
+    if (arcR2 > 10 && comp > 6) {
+      const midC = (Math.PI / 2 + Math.PI - rad) / 2;
+      const dist = arcR2 + (comp < 20 ? 48 : 36);
+      drawAngleWithLabel(T.x, T.y, arcR2, Math.PI / 2, Math.PI - rad, c.sin, cStr, midC, dist, c.canvasBg);
+    }
+
+    ctx.fillStyle = c.point;
+    ctx.strokeStyle = c.surface;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(T.x, T.y, dragging ? 10 : 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function scheduleDraw() {
+    if (drawPending) return;
+    drawPending = true;
+    requestAnimationFrame(() => {
+      drawPending = false;
+      draw();
+    });
+  }
+
+  function updateAnglePanel() {
+    const { t, c } = anglePair(theta);
+    if (t === lastPanelDeg) return;
+    lastPanelDeg = t;
+    degTheta.textContent = String(t);
+    degComp.textContent = String(c);
+  }
+
+  function updateUIHeavy() {
+    const comp = 90 - theta;
+    const rad = theta * Math.PI / 180;
+    const s = Math.sin(rad);
+    const co = Math.cos(comp * Math.PI / 180);
+    const ex = nearestExact(theta);
+    const sinStr = ex ? mathHTML(ex.s) : s.toFixed(3);
+    const cosStr = ex ? mathHTML(ex.c) : co.toFixed(3);
+
+    if (sinStr !== lastSinStr) {
+      setTrigVal(valSin, sinStr);
+      lastSinStr = sinStr;
+    }
+    if (cosStr !== lastCosStr) {
+      setTrigVal(valCos, cosStr);
+      lastCosStr = cosStr;
+    }
+
+    const rounded = Math.round(theta);
+    if (rounded !== lastRefDeg) {
+      lastRefDeg = rounded;
+      refContainer.querySelectorAll('.ref-btn').forEach(btn => {
+        btn.setAttribute('aria-pressed', String(Number(btn.dataset.deg) === rounded &&
+          Math.abs(theta - rounded) < 0.6));
+      });
+      const { t, c } = anglePair(theta);
+      srAngle.textContent = `มุม ${t} องศา บวก ${c} องศา ได้ 90 องศา`;
+    }
+
+    if (!dragging) {
+      slider.value = String(theta);
+      slider.setAttribute('aria-valuenow', fmtDeg(theta));
+      slider.setAttribute('aria-valuetext', `${fmtDeg(theta)} องศา`);
+    }
+
+    canvas.setAttribute('aria-label',
+      `สามเหลี่ยมมุมฉาก theta ${anglePair(theta).t} องศา 90 ลบ theta ${anglePair(theta).c} องศา`);
+  }
+
+  function updateUI() {
+    updateAnglePanel();
+    updateUIHeavy();
+  }
+
+  function tick() {
+    const diff = thetaTarget - theta;
+    if (Math.abs(diff) < 0.05) {
+      theta = thetaTarget;
+      animId = null;
+    } else {
+      theta += diff * LERP;
+      animId = requestAnimationFrame(tick);
+    }
+    updateUI();
+    scheduleDraw();
+  }
+
+  function startSmooth() {
+    if (reducedMotion || Math.abs(thetaTarget - theta) < 0.05) {
+      theta = thetaTarget;
+      updateUI();
+      scheduleDraw();
+      return;
+    }
+    if (animId) cancelAnimationFrame(animId);
+    animId = requestAnimationFrame(tick);
+  }
+
+  function setTarget(deg, { animate = true, snapEnd = false } = {}) {
+    let t = clamp(deg);
+    if (snapEnd) t = snapSpecial(t);
+    thetaTarget = t;
+    lastPanelDeg = -1;
+    if (!animate || dragging) {
+      theta = thetaTarget;
+      updateUI();
+      scheduleDraw();
+      return;
+    }
+    startSmooth();
+  }
+
+  function thetaFromPointer(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (clientX - rect.left) * (CSS_W / rect.width);
+    const my = (clientY - rect.top) * (CSS_H / rect.height);
+    const dx = mx - ORIGIN_X;
+    const dy = ORIGIN_Y - my;
+    if (dy < 8) return theta;
+    return clamp(Math.atan2(dy, dx) * 180 / Math.PI);
+  }
+
+  function applyPointer(clientX, clientY) {
+    const t = thetaFromPointer(clientX, clientY);
+    theta = t;
+    thetaTarget = t;
+    updateAnglePanel();
+    scheduleDraw();
+    if (!pointerRaf) {
+      pointerRaf = requestAnimationFrame(() => {
+        pointerRaf = null;
+        updateUIHeavy();
+      });
+    }
+  }
+
+  function finishDrag() {
+    dragging = false;
+    lastPanelDeg = -1;
+    updateUI();
+    const snapped = snapSpecial(theta);
+    if (Math.abs(snapped - theta) <= SNAP_TOL) {
+      setTarget(snapped, { animate: !reducedMotion, snapEnd: true });
+    } else {
+      scheduleDraw();
+    }
+  }
+
+  SNAP.forEach(deg => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ref-btn';
+    btn.dataset.deg = deg;
+    btn.textContent = `${deg}°`;
+    btn.setAttribute('aria-label', `ตั้งมุม ${deg} องศา`);
+    btn.addEventListener('click', () => setTarget(deg, { animate: !reducedMotion, snapEnd: true }));
+    refContainer.appendChild(btn);
+  });
+
+  slider.addEventListener('input', () => {
+    lastPanelDeg = -1;
+    setTarget(Number(slider.value), { animate: false });
+  });
+
+  canvas.addEventListener('mousedown', e => {
+    dragging = true;
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    applyPointer(e.clientX, e.clientY);
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (dragging) applyPointer(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', finishDrag);
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    dragging = true;
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    applyPointer(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (dragging) applyPointer(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+  window.addEventListener('touchend', finishDrag);
+
+  canvas.addEventListener('keydown', e => {
+    const step = e.shiftKey ? 5 : 1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      setTarget(theta + step, { animate: !reducedMotion });
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      setTarget(theta - step, { animate: !reducedMotion });
+    } else if (e.key === '1') { e.preventDefault(); setTarget(30, { animate: !reducedMotion, snapEnd: true }); }
+    else if (e.key === '2') { e.preventDefault(); setTarget(45, { animate: !reducedMotion, snapEnd: true }); }
+    else if (e.key === '3') { e.preventDefault(); setTarget(60, { animate: !reducedMotion, snapEnd: true }); }
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    readColors();
+    scheduleDraw();
+  });
+
+  window.addEventListener('resize', () => {
+    setupCanvas();
+    scheduleDraw();
+  });
+
+  setupCanvas();
+  setTarget(30, { animate: false, snapEnd: true });
+})();
+</script>
+</body>
+</html>
