@@ -581,10 +581,11 @@
   let lastCosStr = '';
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /** sin(θ) และ cos(90°−θ) ต้องเท่ากัน — c คือ cos(90°−θ) ไม่ใช่ cos(θ) */
   const EXACT = {
-    30: { s: '1/2', c: '√3/2' },
+    30: { s: '1/2', c: '1/2' },
     45: { s: '√2/2', c: '√2/2' },
-    60: { s: '√3/2', c: '1/2' },
+    60: { s: '√3/2', c: '√3/2' },
   };
 
   window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', e => {
