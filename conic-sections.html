@@ -1,0 +1,2717 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ภาคตัดกรวย — เส้นตรง · พาราโบลา · วงกลม · วงรี · ไฮเพอร์โบลา</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f0e8; --surface: #fffcf7; --surface2: #ebe4d9; --border: #c9bfb0;
+      --text: #1c1917; --muted: #57534e; --accent: #1d4ed8; --curve: #d4620a;
+      --focus: #c41e3a; --guide: #0d7a45;
+      --focus-ring: #1d4ed8; --canvas-bg: #fffcf7; --on-accent: #fff;
+      --touch-min: 44px;
+      --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+      --font-sans: 'Noto Sans Thai', 'Segoe UI', sans-serif;
+      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --dur-fast: 150ms;
+      --dur-mid: 250ms;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1917; --surface: #292524; --surface2: #44403c; --border: #57534e;
+        --text: #fafaf9; --muted: #a8a29e; --accent: #60a5fa; --curve: #fb923c;
+        --focus: #fb7185; --guide: #34d399;
+        --focus-ring: #60a5fa; --canvas-bg: #292524;
+      }
+    }
+
+    html { scroll-behavior: smooth; }
+    [hidden] { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      body:not(.ready) header,
+      body:not(.ready) main > * {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      body.ready header {
+        animation: enter-up 0.55s var(--ease-out-expo) forwards;
+      }
+
+      body.ready main > section {
+        animation: enter-up 0.55s var(--ease-out-expo) 0.1s forwards;
+      }
+
+      body.ready main > aside {
+        animation: enter-up 0.55s var(--ease-out-expo) 0.18s forwards;
+      }
+
+      @keyframes enter-up {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes eq-switch {
+        from { opacity: 0.45; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .type-btn {
+        transition:
+          background var(--dur-fast) var(--ease-out-quart),
+          border-color var(--dur-fast) var(--ease-out-quart),
+          color var(--dur-fast) var(--ease-out-quart),
+          transform var(--dur-fast) var(--ease-out-quart);
+      }
+
+      .type-btn:active { transform: scale(0.97); }
+
+      .eq-box.is-switching {
+        animation: eq-switch var(--dur-mid) var(--ease-out-quart);
+      }
+    }
+
+    body { font-family: var(--font-sans); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.65; }
+
+    .skip-link {
+      position: absolute; top: -100%; left: 1rem; z-index: 100;
+      padding: 0.5rem 1rem; background: var(--accent); color: var(--on-accent);
+      border-radius: 0 0 6px 6px; font-weight: 600; text-decoration: none;
+    }
+    .skip-link:focus { top: 0; outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+    header { max-width: 1100px; margin: 0 auto; padding: 1.75rem 1rem 1rem; border-bottom: 2px solid var(--border); }
+    header h1 { font-size: clamp(1.35rem, 3.5vw, 1.85rem); font-weight: 700; letter-spacing: -0.02em; }
+    header p { margin-top: 0.35rem; font-size: 0.95rem; color: var(--muted); }
+    header a { color: var(--accent); font-weight: 600; }
+
+    main {
+      max-width: 1100px; margin: 0 auto; padding: 1.25rem 1rem;
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+      display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1.25rem; align-items: start;
+    }
+
+    /* Tablet */
+    @media (min-width: 768px) and (max-width: 1023px) {
+      main { grid-template-columns: minmax(0, 1fr) 248px; gap: 1rem; padding: 1rem 0.85rem; }
+      header { padding: 1.25rem 0.85rem 0.85rem; }
+    }
+
+    /* Mobile — stack: กราฟบน · แผงควบคุมล่าง */
+    @media (max-width: 767px) {
+      body { font-size: 16px; -webkit-text-size-adjust: 100%; }
+      header {
+        padding: 1rem max(0.85rem, env(safe-area-inset-left)) 0.75rem;
+        padding-right: max(0.85rem, env(safe-area-inset-right));
+      }
+      main {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        padding: 0.85rem max(0.75rem, env(safe-area-inset-left));
+        padding-right: max(0.75rem, env(safe-area-inset-right));
+        padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+      }
+      .canvas-wrap { padding: 0.65rem; border-radius: 8px; }
+      .legend {
+        gap: 0.35rem 0.65rem;
+        font-size: 0.75rem;
+        justify-content: flex-start;
+      }
+      .legend .leg-full { display: none; }
+      .legend .leg-short { display: inline; }
+      .type-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.35rem;
+        margin-bottom: 0.55rem;
+        padding-bottom: 0.2rem;
+        scrollbar-width: none;
+      }
+      .type-grid::-webkit-scrollbar { display: none; }
+      .type-btn {
+        flex: 0 0 auto;
+        min-width: 5.25rem;
+        scroll-snap-align: start;
+        font-size: 0.8rem;
+        touch-action: manipulation;
+      }
+      .panel.mode-compact .type-btn,
+      .panel.mode-compact .play-btn,
+      .panel.mode-compact .view3d-toggle,
+      .panel.mode-compact .coord-btn,
+      .view3d-toggle,
+      .play-btn,
+      .eq-tab {
+        min-height: var(--touch-min);
+      }
+      .panel.mode-compact .coord-btn { min-height: var(--touch-min); padding: 0.35rem 0.5rem; }
+      .panel.mode-compact input[type="range"] { height: 10px; }
+      .panel.mode-compact input[type="range"]::-webkit-slider-thumb,
+      input[type="range"]::-webkit-slider-thumb {
+        width: 28px; height: 28px;
+      }
+      .panel.mode-compact input[type="range"]::-moz-range-thumb,
+      input[type="range"]::-moz-range-thumb {
+        width: 28px; height: 28px;
+      }
+      .play-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; gap: 0.35rem; }
+    }
+
+    /* Desktop ที่แคบลง */
+    @media (max-width: 900px) and (min-width: 768px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .legend .leg-short { display: none; }
+
+    .canvas-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+    canvas {
+      display: block; width: 100%; height: auto;
+      border: 1px solid var(--border); border-radius: 6px; background: var(--canvas-bg);
+      cursor: grab; touch-action: none;
+    }
+    canvas.is-panning { cursor: grabbing; }
+    canvas:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+
+    .legend {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 0.45rem 1rem; margin-top: 0.65rem; font-size: 0.82rem; color: var(--muted);
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .legend .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend .l-curve .dot { background: var(--curve); }
+    .legend .l-focus .dot { background: var(--focus); }
+    .legend .l-guide .dot { background: var(--guide); }
+    .legend .l-pan .dot { background: var(--muted); width: 14px; height: 2px; border-radius: 1px; }
+
+    aside { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.15rem; min-width: 0; overflow: hidden; }
+    .panel h2 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.65rem; }
+
+    .panel.mode-compact { padding: 0.65rem 0.72rem; }
+    .panel.mode-compact h2 { margin-bottom: 0.4rem; font-size: 0.82rem; }
+    .panel.mode-compact .type-grid { gap: 0.28rem; margin-bottom: 0.5rem; }
+    .panel.mode-compact .type-btn {
+      min-height: 34px; padding: 0.3rem 0.35rem; font-size: 0.74rem; border-width: 1.5px; border-radius: 6px;
+    }
+    .panel.mode-compact .eq-box { gap: 0.32rem; margin-bottom: 0.45rem; }
+    .panel.mode-compact .eq-card { padding: 0.42rem 0.48rem; border-radius: 6px; border-left-width: 2px; }
+    .panel.mode-compact .eq-tag { font-size: 0.64rem; margin-bottom: 0.2rem; }
+    .panel.mode-compact .eq-template { font-size: 0.68rem; margin-bottom: 0.2rem; padding-bottom: 0.2rem; }
+    .panel.mode-compact .eq-value {
+      font-size: 0.72rem; line-height: 1.4;
+      white-space: normal; word-break: break-word; overflow-x: visible;
+    }
+    .panel.mode-compact .eq-hint { display: none; }
+    .panel.mode-compact #sliders { display: grid; gap: 0.1rem; }
+    .panel.mode-compact .slider-block { margin-top: 0.32rem; }
+    .panel.mode-compact .slider-block label { font-size: 0.76rem; margin-bottom: 0.22rem; }
+    .panel.mode-compact .slider-block label span.val { font-size: 0.78rem; }
+    .panel.mode-compact input[type="range"] { height: 8px; border-radius: 4px; }
+    .panel.mode-compact input[type="range"]::-webkit-slider-thumb {
+      width: 20px; height: 20px; border-width: 2px;
+    }
+    .panel.mode-compact input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px; border-width: 2px;
+    }
+    .panel.mode-compact .line-tools { margin-top: 0.45rem; padding-top: 0.45rem; }
+    .panel.mode-compact .line-tools-hint { display: none; }
+    .panel.mode-compact .play-grid { gap: 0.28rem; }
+    .panel.mode-compact .play-btn {
+      min-height: 30px; padding: 0.28rem 0.15rem; font-size: 0.72rem; border-radius: 6px; border-width: 1.5px;
+    }
+    .panel.mode-compact .line-fun { margin-top: 0.35rem; }
+    .panel.mode-compact .line-fun .play-btn { font-size: 0.74rem; min-height: 32px; }
+    .panel.mode-compact .coord-tools { margin-top: 0.32rem; }
+    .panel.mode-compact .coord-btn { font-size: 0.68rem; min-height: 26px; padding: 0.15rem 0.38rem; border-radius: 5px; }
+    .panel.mode-compact .eq-tab { min-height: 28px; font-size: 0.68rem; padding: 0.2rem 0.3rem; }
+    .panel.mode-compact .eq-tabs:not([hidden]) + .eq-card .eq-tag { display: none; }
+    .panel.mode-compact .eq-card:has(#eqAligned:not([hidden])) .eq-tag { display: none; }
+
+    .eq-pair-wrap { margin: 0.05rem 0; overflow-x: auto; max-width: 100%; scrollbar-width: thin; }
+    .eq-pair {
+      display: grid;
+      grid-template-columns: repeat(var(--eq-cols, 6), max-content);
+      grid-template-rows: auto auto;
+      column-gap: 0.18em;
+      row-gap: 0.22em;
+      align-items: baseline;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.45;
+      width: max-content;
+      max-width: 100%;
+    }
+    .panel.mode-compact .eq-pair { font-size: 0.68rem; column-gap: 0.14em; row-gap: 0.18em; }
+    .eq-cell { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .eq-cell.eq-sign { min-width: 0.75em; text-align: center; }
+    .eq-cell.eq-tpl { color: var(--muted); font-weight: 600; }
+    .eq-cell.eq-val { color: var(--curve); font-weight: 700; }
+    .eq-cell sup { font-size: 0.68em; vertical-align: super; }
+
+    .eq-tabs {
+      display: flex; gap: 0.3rem; margin-bottom: 0.35rem;
+    }
+    .eq-tab {
+      flex: 1; min-height: 32px; padding: 0.25rem 0.4rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface2); color: var(--muted);
+      font-family: var(--font-sans); font-size: 0.74rem; font-weight: 700;
+      cursor: pointer;
+    }
+    .eq-tab[aria-selected="true"] {
+      background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+    }
+    .eq-tab:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+    .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.85rem; }
+    .type-btn {
+      min-height: var(--touch-min); padding: 0.45rem 0.5rem;
+      border: 2px solid var(--border); border-radius: 8px;
+      background: var(--surface2); color: var(--text);
+      font-family: var(--font-sans); font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    }
+    .type-btn:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+    .type-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+    .eq-box {
+      display: flex; flex-direction: column; gap: 0.55rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .eq-card {
+      padding: 0.65rem 0.7rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      border-left: 3px solid var(--curve);
+    }
+
+    .eq-card.gen { border-left-color: var(--muted); }
+
+    .eq-tag {
+      display: block;
+      font-size: 0.72rem; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.03em; margin-bottom: 0.35rem;
+    }
+
+    .eq-template {
+      font-family: var(--font-mono);
+      font-size: 0.8rem; font-weight: 600; color: var(--muted);
+      line-height: 1.4; margin-bottom: 0.35rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .eq-value {
+      font-family: var(--font-mono);
+      font-size: clamp(0.82rem, 2.4vw, 1rem);
+      font-weight: 700; color: var(--curve);
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow-x: auto;
+      max-width: 100%;
+      padding: 0.1rem 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .eq-card.gen .eq-value { color: var(--text); font-size: clamp(0.85rem, 2.5vw, 0.98rem); font-weight: 600; }
+
+    .eq-hint { font-size: 0.78rem; color: var(--muted); font-weight: 600; line-height: 1.4; padding: 0 0.1rem; }
+
+    .mwrap { display: inline-flex; align-items: center; vertical-align: middle; gap: 3px; }
+    .mfrac {
+      display: inline-grid; grid-template-rows: auto 1px auto;
+      align-items: center; text-align: center; vertical-align: middle;
+      font-size: 0.82em; line-height: 1.1; padding: 0 3px;
+    }
+    .mnum, .mden { padding: 0 4px; white-space: nowrap; }
+    .mline { background: currentColor; height: 1px; width: 100%; min-width: 1.4em; }
+    .eq-value sup, .eq-template sup { font-size: 0.68em; vertical-align: super; }
+    .eq-op { margin: 0 0.2em; font-weight: 700; }
+
+    .slider-block { margin-top: 0.55rem; }
+    .slider-block:first-of-type { margin-top: 0; }
+    .slider-block label {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 0.86rem; font-weight: 600; margin-bottom: 0.4rem; gap: 0.5rem;
+    }
+    .slider-block label span.val {
+      font-family: var(--font-mono); font-size: 0.88rem;
+      color: var(--accent); font-weight: 700; flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .line-tools {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    .line-tools-hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.45;
+      margin-bottom: 0.5rem;
+    }
+
+    .play-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+    }
+
+    .play-grid.cols-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .play-btn {
+      width: 100%;
+      min-height: var(--touch-min);
+      padding: 0.5rem 0.4rem;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .play-btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .play-btn[aria-pressed="true"] {
+      background: var(--surface);
+      color: var(--accent);
+    }
+
+    .line-fun {
+      margin-top: 0.5rem;
+    }
+
+    .line-fun .play-btn {
+      width: 100%;
+    }
+
+    .coord-tools {
+      margin-top: 0.55rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .coord-btn {
+      min-height: 32px;
+      padding: 0.25rem 0.55rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .coord-btn[aria-pressed="true"] {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    }
+
+    .coord-btn:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .view3d-toggle {
+      width: 100%;
+      min-height: 36px;
+      margin-bottom: 0.55rem;
+      padding: 0.4rem 0.55rem;
+      border: 2px solid var(--guide);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--guide) 12%, var(--surface));
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .view3d-toggle[aria-pressed="true"] {
+      background: var(--guide);
+      border-color: var(--guide);
+      color: var(--surface);
+    }
+    .view3d-toggle:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+    .panel.mode-compact .view3d-toggle {
+      min-height: 32px;
+      margin-bottom: 0.45rem;
+      font-size: 0.72rem;
+      padding: 0.32rem 0.45rem;
+    }
+
+    .legend .l-cone .dot { background: var(--accent); opacity: 0.85; }
+    .legend .l-plane .dot { background: var(--guide); opacity: 0.55; width: 12px; height: 12px; border-radius: 2px; }
+    .legend .l-rotate .dot { background: transparent; border: 2px dashed var(--muted); width: 12px; height: 12px; border-radius: 50%; }
+
+    canvas.view3d-mode { cursor: grab; }
+    canvas.view3d-mode.is-rotating { cursor: grabbing; }
+
+    input[type="range"] {
+      width: 100%; height: 12px; -webkit-appearance: none; appearance: none;
+      background: var(--surface2); border-radius: 6px; outline: none; cursor: pointer;
+    }
+    input[type="range"]:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--curve); border: 3px solid var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--curve); border: 3px solid var(--surface); cursor: pointer;
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+
+<a href="#controls" class="skip-link">ข้ามไปส่วนควบคุม</a>
+
+<header>
+  <h1>ภาคตัดกรวย (Conic Sections)</h1>
+</header>
+
+<main>
+  <section class="canvas-wrap" aria-labelledby="canvas-heading">
+    <h2 id="canvas-heading" class="sr-only">กราฟภาคตัดกรวย</h2>
+    <canvas id="canvas" width="560" height="420" tabindex="0" role="img" aria-label="กราฟภาคตัดกรวย"></canvas>
+    <div class="legend" id="legend">
+      <span class="l-curve"><span class="dot"></span><span class="leg-full">ภาคตัด</span><span class="leg-short">ตัด</span></span>
+      <span class="l-focus"><span class="dot"></span><span class="leg-full">จุดโฟกัส / ศูนย์กลาง</span><span class="leg-short">จุดสำคัญ</span></span>
+      <span class="l-guide"><span class="dot"></span><span class="leg-full">ไกด์ / แกน</span><span class="leg-short">ไกด์</span></span>
+      <span class="l-pan" id="legendPan"><span class="dot"></span><span class="leg-full">ลากกราฟเพื่อเลื่อน · ดับเบิลคลิกรีเซ็ต</span><span class="leg-short">ลากเลื่อน · ดับเบิลคลิกรีเซ็ต</span></span>
+      <span class="l-cone" id="legendCone" hidden><span class="dot"></span><span class="leg-full">กรวยคู่</span><span class="leg-short">กรวย</span></span>
+      <span class="l-plane" id="legendPlane" hidden><span class="dot"></span><span class="leg-full">ระนาบตัด</span><span class="leg-short">ระนาบ</span></span>
+      <span class="l-rotate" id="legendRotate" hidden><span class="dot"></span><span class="leg-full">ลากหมุนอิสระ · ดับเบิลคลิกรีเซ็ต</span><span class="leg-short">ลากหมุน · ดับเบิลคลิกรีเซ็ต</span></span>
+    </div>
+  </section>
+
+  <aside id="controls" aria-label="แผงควบคุม">
+    <div class="panel" id="mainPanel">
+      <h2>เลือกชนิด</h2>
+      <button type="button" id="btnView3d" class="view3d-toggle" aria-pressed="false" title="ดูกรวย 3D กับระนาบตัด — ลากหมุนได้">
+        🔮 Conic Section 3D
+      </button>
+      <div class="type-grid" role="group" aria-label="ชนิดภาคตัดกรวย">
+        <button type="button" class="type-btn" data-type="line" aria-pressed="true">เส้นตรง</button>
+        <button type="button" class="type-btn" data-type="parabola" aria-pressed="false">พาราโบลา</button>
+        <button type="button" class="type-btn" data-type="circle" aria-pressed="false">วงกลม</button>
+        <button type="button" class="type-btn" data-type="ellipse" aria-pressed="false">วงรี</button>
+        <button type="button" class="type-btn" data-type="hyperbola" aria-pressed="false">ไฮเพอร์โบลา</button>
+      </div>
+
+      <div class="eq-box" id="eqBox">
+        <div class="eq-tabs" id="eqTabs" role="tablist" aria-label="รูปแบบสมการ" hidden>
+          <button type="button" class="eq-tab" id="eqTabStd" role="tab" data-eq="std" aria-selected="true">แบบ 1</button>
+          <button type="button" class="eq-tab" id="eqTabGen" role="tab" data-eq="gen" aria-selected="false">แบบ 2</button>
+        </div>
+        <div class="eq-card">
+          <span class="eq-tag" id="eqTagStd">รูปมาตรฐาน (h, k)</span>
+          <div class="eq-pair-wrap" id="eqAligned" hidden></div>
+          <div class="eq-template" id="eqTplStd"></div>
+          <div class="eq-value" id="eqStd"></div>
+        </div>
+        <div class="eq-card gen" id="eqGenCard">
+          <span class="eq-tag" id="eqTagGen">รูปทั่วไป</span>
+          <div class="eq-template" id="eqTplGen"></div>
+          <div class="eq-value" id="eqGen"></div>
+        </div>
+        <p class="eq-hint" id="eqHint"></p>
+        <span class="sr-only" id="srDesc" aria-live="polite"></span>
+      </div>
+
+      <div id="sliders"></div>
+
+      <div id="coordTools" class="coord-tools" hidden>
+        <button type="button" id="btnCoordToggle" class="coord-btn" aria-pressed="true"></button>
+      </div>
+
+      <div id="playTools" class="line-tools" hidden>
+        <p id="playHint" class="line-tools-hint"></p>
+        <div id="playGrid" class="play-grid">
+          <button type="button" id="btnPlay1" class="play-btn" data-mode="" data-label="" aria-pressed="false"></button>
+          <button type="button" id="btnPlay2" class="play-btn" data-mode="" data-label="" aria-pressed="false"></button>
+          <button type="button" id="btnPlay3" class="play-btn" data-mode="" data-label="" aria-pressed="false" hidden></button>
+        </div>
+        <div id="lineFun" class="line-fun" hidden>
+          <button type="button" id="btnLineCar" class="play-btn" aria-pressed="false" title="โยนรถลงไปตามความชัน">🚗 รถ</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const CSS_W = 560;
+  const CSS_H = 420;
+  const SCALE = 36;
+  const CX = CSS_W * 0.42;
+  const CY = CSS_H * 0.52;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const eqStd = document.getElementById('eqStd');
+  const eqGen = document.getElementById('eqGen');
+  const eqTplStd = document.getElementById('eqTplStd');
+  const eqTplGen = document.getElementById('eqTplGen');
+  const eqTagStd = document.getElementById('eqTagStd');
+  const eqTagGen = document.getElementById('eqTagGen');
+  const eqGenCard = document.getElementById('eqGenCard');
+  const eqBox = document.getElementById('eqBox');
+  const eqAligned = document.getElementById('eqAligned');
+  const eqTabs = document.getElementById('eqTabs');
+  const eqTabStd = document.getElementById('eqTabStd');
+  const eqTabGen = document.getElementById('eqTabGen');
+  const mainPanel = document.getElementById('mainPanel');
+  const eqHint = document.getElementById('eqHint');
+  const srDesc = document.getElementById('srDesc');
+  const slidersEl = document.getElementById('sliders');
+  const coordTools = document.getElementById('coordTools');
+  const btnCoordToggle = document.getElementById('btnCoordToggle');
+  const playTools = document.getElementById('playTools');
+  const playHint = document.getElementById('playHint');
+  const playGrid = document.getElementById('playGrid');
+  const lineFun = document.getElementById('lineFun');
+  const btnLineCar = document.getElementById('btnLineCar');
+  const btnPlay1 = document.getElementById('btnPlay1');
+  const btnPlay2 = document.getElementById('btnPlay2');
+  const btnPlay3 = document.getElementById('btnPlay3');
+  const playBtns = [btnPlay1, btnPlay2, btnPlay3];
+  const typeBtns = document.querySelectorAll('.type-btn');
+  const btnView3d = document.getElementById('btnView3d');
+  const legendPan = document.getElementById('legendPan');
+  const legendCone = document.getElementById('legendCone');
+  const legendPlane = document.getElementById('legendPlane');
+  const legendRotate = document.getElementById('legendRotate');
+
+  let dpr = 1;
+  let colors = null;
+  let drawPending = false;
+  let gridCache = null;
+  let panX = 0;
+  let panY = 0;
+  let panning = false;
+  let view3d = false;
+  let viewQuat = [1, 0, 0, 0];
+  let arcballPrev = null;
+  let cone3dDragging = false;
+  let planeState = { tilt: 0, spin: 0, height: 0.52 };
+  let planeMorph = null;
+  const PLANE_MORPH_MS = 650;
+  const CONE_TAN = Math.tan(26 * Math.PI / 180);
+  const CONE_HALF = Math.atan(CONE_TAN);
+  const CONE_H = 1.12;
+  const PLANE_PRESETS = {
+    // มุมระนาบตามหลัก geometry: β=0 วงกลม · 0<β<α วงรี · β=α พาราโบลา · β>α ไฮเพอร์โบลา
+    circle:    { tilt: 0, spin: 0, height: 0.52 },
+    ellipse:   { tilt: CONE_HALF * 0.52, spin: 0.18, height: 0.46 },
+    parabola:  { tilt: Math.PI / 2 - CONE_HALF, spin: 0, height: 0.50 },
+    hyperbola: { tilt: CONE_HALF + 0.78, spin: 0, height: 0.16 },
+    line:      { tilt: Math.PI / 2 - CONE_HALF + 0.2, spin: 0.38, height: 0 },
+  };
+  const PLANE_HINTS = {
+    circle:    'ระนาบราบ ⊥ แกนกรวย → วงกลม',
+    ellipse:   'ระนาบเอียง (ไม่ขนานด้านกรวย) → วงรี',
+    parabola:  'ระนาบขนานด้านกรวย → พาราโบลา',
+    hyperbola: 'ระนาบชัน ตัดทั้ง 2 กิ่ง → ไฮเพอร์โบลา',
+    line:      'ระนาบผ่านจุดยอด → เส้นตรง',
+  };
+  const TYPE_LABELS = {
+    line: 'เส้นตรง', parabola: 'พาราโบลา', circle: 'วงกลม',
+    ellipse: 'วงรี', hyperbola: 'ไฮเพอร์โบลา',
+  };
+  let panStartClientX = 0;
+  let panStartClientY = 0;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panAnimId = null;
+  let paramDemoId = null;
+  let paramDemoPlaying = false;
+  let paramDemoMode = null;
+  let paramDemoSaved = null;
+  let paramDemoStart = 0;
+  let carAnimId = null;
+  let carRunning = false;
+  let carX = 0;
+  let carLastTs = 0;
+  let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let layoutNarrow = false;
+  const PAN_LERP = 0.18;
+  const PARAM_DEMO_MS = 10000;
+  const PARAM_DEMO_MS_A = 15000;
+  const PARABOLA_A_SNAP = 0.25;
+  const PARABOLA_A_DP = 2;
+  const COMPACT_TYPES = new Set(['line', 'parabola', 'circle']);
+
+  const SHOW_COORD_LABEL = {
+    line: '📍 จุดตัดแกน y (0,c)',
+    parabola: '📍 จุดยอด (h,k)',
+    circle: '📍 ศูนย์กลาง (h,k)',
+  };
+  const SHOW_COORD_SHORT = {
+    line: '📍 (0,c)',
+    parabola: '📍 ยอด',
+    circle: '📍 ศก.',
+  };
+  const showCoords = {
+    line: true,
+    parabola: true,
+    circle: true,
+  };
+
+  // Graph morph: animate canvas transition (e.g. line -> parabola)
+  let graphMorph = null;
+  const GRAPH_MORPH_MS = 650;
+
+  const PLAY_CONFIG = {
+    line: {
+      hint: '',
+      buttons: [
+        { mode: 'm', label: '▶ m' },
+        { mode: 'c', label: '▶ c' },
+      ],
+    },
+    parabola: {
+      hint: '',
+      buttons: [
+        { mode: 'a', label: '▶ a' },
+        { mode: 'h', label: '▶ h' },
+        { mode: 'k', label: '▶ k' },
+      ],
+    },
+    circle: {
+      hint: '',
+      buttons: [
+        { mode: 'r', label: '▶ r' },
+        { mode: 'h', label: '▶ h' },
+        { mode: 'k', label: '▶ k' },
+      ],
+    },
+  };
+
+  let type = 'line';
+  let parabolaEqTab = 'std';
+  const params = {
+    line:     { m: 0.75, c: 0 },
+    parabola: { a: 0.5, h: 0, k: 0 },
+    circle:   { h: 0, k: 0, r: 2 },
+    ellipse:  { h: 0, k: 0, a: 4, b: 2.5 },
+    hyperbola:{ h: 0, k: 0, a: 2.5, b: 2 },
+  };
+
+  const TYPE_META = {
+    line:      { hint: 'ความชัน m · ตัดแกน y ที่ c' },
+    parabola:  { hint: 'a + หงาย · a − กลอ · h,k เลื่อนยอด' },
+    circle:    { hint: 'ศูนย์กลาง (h, k) · รัศมี r' },
+    ellipse:   { hint: 'ศูนย์กลาง (h, k)' },
+    hyperbola: { hint: 'ศูนย์กลาง (h, k) · 2 กิ่ง' },
+  };
+
+  const SLIDER_DEFS = {
+    line: [
+      { key: 'm', label: 'm ↗', title: 'm — ความชัน', min: -3, max: 3, step: 0.1 },
+      { key: 'c', label: 'c ↕', title: 'c — ตัดแกน y ที่ (0, c)', min: -4, max: 4, step: 0.5 },
+    ],
+    parabola: [
+      { key: 'a', label: 'a ±', title: 'a — กว้าง/แคบ · บวกหงายขึ้น · ลบหงายลง', min: -2, max: 2, step: 0.01, decimals: 2 },
+      { key: 'h', label: 'h ↔', title: 'h — ยอด เลื่อนซ้าย–ขวา', min: -3, max: 3, step: 0.5 },
+      { key: 'k', label: 'k ↕', title: 'k — ยอด เลื่อนขึ้น–ลง', min: -3, max: 3, step: 0.5 },
+    ],
+    circle: [
+      { key: 'h', label: 'h ↔', title: 'h — ศูนย์กลาง ซ้าย–ขวา', min: -3, max: 3, step: 0.5 },
+      { key: 'k', label: 'k ↕', title: 'k — ศูนย์กลาง ขึ้น–ลง', min: -3, max: 3, step: 0.5 },
+      { key: 'r', label: 'r', title: 'r — รัศมี', min: 1, max: 5, step: 0.1 },
+    ],
+    ellipse: [
+      { key: 'h', label: 'h', min: -3, max: 3, step: 0.5 },
+      { key: 'k', label: 'k', min: -3, max: 3, step: 0.5 },
+      { key: 'a', label: 'a', min: 2, max: 5.5, step: 0.1 },
+      { key: 'b', label: 'b', min: 1, max: 4.5, step: 0.1 },
+    ],
+    hyperbola: [
+      { key: 'h', label: 'h', min: -3, max: 3, step: 0.5 },
+      { key: 'k', label: 'k', min: -3, max: 3, step: 0.5 },
+      { key: 'a', label: 'a', min: 1.2, max: 4, step: 0.1 },
+      { key: 'b', label: 'b', min: 1, max: 3.5, step: 0.1 },
+    ],
+  };
+
+  const EQ_TPL = {
+    line: {
+      std: 'y = mx + c',
+      gen: 'Ax + By + C = 0',
+    },
+    parabola: {
+      std: 'y = a(x − h)² + k',
+      gen: 'y = Ax² + Bx + C',
+    },
+    circle: {
+      std: '(x − h)² + (y − k)² = r²',
+      gen: '',
+    },
+    ellipse: {
+      std: '(x−h)²/a² + (y−k)²/b² = 1',
+      gen: 'Ax² + Cy² + Dx + Ey + F = 0',
+    },
+    hyperbola: {
+      std: '(x−h)²/a² − (y−k)²/b² = 1',
+      gen: 'Ax² − Cy² + Dx + Ey + F = 0',
+    },
+  };
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    readColors();
+    gridCache = null;
+    scheduleDraw(true);
+  });
+
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', e => {
+    reducedMotion = e.matches;
+    if (reducedMotion && panAnimId) {
+      cancelAnimationFrame(panAnimId);
+      panAnimId = null;
+    }
+    if (reducedMotion && paramDemoPlaying) stopParamDemo(true);
+  });
+
+  function flashEl(el, cls) {
+    if (!el || reducedMotion || !document.body.classList.contains('ready')) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    const v = n => s.getPropertyValue(n).trim();
+    colors = {
+      canvasBg: v('--canvas-bg'), text: v('--text'), muted: v('--muted'),
+      accent: v('--accent'), curve: v('--curve'), focus: v('--focus'),
+      guide: v('--guide'),
+      border: v('--border'), surface: v('--surface'), surface2: v('--surface2'),
+    };
+  }
+
+  function setupCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = Math.round(CSS_W * dpr);
+    canvas.height = Math.round(CSS_H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    readColors();
+    gridCache = null;
+  }
+
+  function n(n, d = 1) {
+    const r = Math.round(n * 10 ** d) / 10 ** d;
+    if (Math.abs(r) < 0.05) return 0;
+    return r;
+  }
+
+  function nStr(v, d = 1) {
+    const r = n(v, d);
+    if (r === 0) return '0';
+    if (Number.isInteger(r)) return String(r);
+    return r.toFixed(d);
+  }
+
+  function nStrExact(v, d = 1) {
+    const r = Math.round(v * 10 ** d) / 10 ** d;
+    if (r === 0) return '0';
+    if (Number.isInteger(r)) return String(r);
+    return r.toFixed(d);
+  }
+
+  function formatCoordPair(x, y) {
+    return `(${nStrExact(x, 1)}, ${nStrExact(y, 1)})`;
+  }
+
+  function eqSign(v) {
+    return v >= 0 ? '+' : '−';
+  }
+
+  function eqPair(tplCells, valCells) {
+    const cols = tplCells.length;
+    const row = (cells, cls) => cells.map(c => {
+      const signCls = (c === '+' || c === '−') ? ' eq-sign' : '';
+      return `<span class="eq-cell eq-${cls}${signCls}">${c}</span>`;
+    }).join('');
+    return `<div class="eq-pair" style="--eq-cols:${cols}">${row(tplCells, 'tpl')}${row(valCells, 'val')}</div>`;
+  }
+
+  function axisShiftSq(axis, t, asVar) {
+    const v = axis === 'x' ? 'x' : 'y';
+    const param = axis === 'x' ? 'h' : 'k';
+    if (asVar) return `(${v}&nbsp;−&nbsp;${param})<sup>2</sup>`;
+    const hs = nStr(Math.abs(t));
+    if (Math.abs(t) < 0.05) return `(${v}&nbsp;−&nbsp;0)<sup>2</sup>`;
+    return `(${v}&nbsp;${t > 0 ? '−' : '+'}&nbsp;${hs})<sup>2</sup>`;
+  }
+
+  function alignedLineEq(m, c) {
+    const mc = Math.abs(m) < 0.05 ? '0' : nStr(m);
+    return eqPair(
+      ['y', '=', 'm', 'x', '+', 'c'],
+      ['y', '=', mc, 'x', eqSign(c), nStr(Math.abs(c))],
+    );
+  }
+
+  function alignedParabolaStdEq(a, h, k) {
+    const aVal = nStrExact(parabolaAUse(a), PARABOLA_A_DP);
+    return eqPair(
+      ['y', '=', 'a', axisShiftSq('x', h, true), '+', 'k'],
+      ['y', '=', aVal, axisShiftSq('x', h, false), eqSign(k), nStr(Math.abs(k))],
+    );
+  }
+
+  function alignedParabolaGenEq(a, h, k) {
+    const A = parabolaAUse(a);
+    const B = -2 * a * h;
+    const C = a * h * h + k;
+    const fmt = v => nStrExact(v, 2);
+    return eqPair(
+      ['y', '=', 'A', 'x<sup>2</sup>', '+', 'B', 'x', '+', 'C'],
+      ['y', '=', fmt(A), 'x<sup>2</sup>', eqSign(B), fmt(Math.abs(B)), 'x', eqSign(C), fmt(Math.abs(C))],
+    );
+  }
+
+  function alignedCircleEq(h, k, r) {
+    const rVal = `${nStr(r)}<sup>2</sup>`;
+    return eqPair(
+      [axisShiftSq('x', h, true), '+', axisShiftSq('y', k, true), '=', 'r<sup>2</sup>'],
+      [axisShiftSq('x', h, false), '+', axisShiftSq('y', k, false), '=', rVal],
+    );
+  }
+
+  function buildAlignedEq() {
+    const p = params[type];
+    switch (type) {
+      case 'line':
+        return alignedLineEq(n(p.m, 3), n(p.c, 3));
+      case 'parabola':
+        return parabolaEqTab === 'gen'
+          ? alignedParabolaGenEq(p.a, p.h, p.k)
+          : alignedParabolaStdEq(p.a, n(p.h, 3), n(p.k, 3));
+      case 'circle':
+        return alignedCircleEq(n(p.h, 3), n(p.k, 3), n(p.r, 2));
+      default:
+        return '';
+    }
+  }
+
+  function sq(v, t) {
+    if (Math.abs(t) < 0.05) return `${v}<sup>2</sup>`;
+    const op = t > 0 ? '−' : '+';
+    return `(${v}${op}${nStr(Math.abs(t))})<sup>2</sup>`;
+  }
+
+  function circleEq(h, k, r) {
+    const xPart = Math.abs(h) < 0.05 ? 'x²' : `(x${h > 0 ? '−' : '+'}${nStr(Math.abs(h))})²`;
+    const yPart = Math.abs(k) < 0.05 ? 'y²' : `(y${k > 0 ? '−' : '+'}${nStr(Math.abs(k))})²`;
+    const rPart = Number.isInteger(r) ? `${r}²` : `${nStr(r)}²`;
+    return `${xPart} + ${yPart} = ${rPart}`.replace(/²/g, '<sup>2</sup>');
+  }
+
+  function xAt(h) {
+    if (Math.abs(h) < 0.05) return 'x';
+    return `(x ${h > 0 ? '−' : '+'} ${nStr(Math.abs(h))})`;
+  }
+
+  function yAt(k) {
+    if (Math.abs(k) < 0.05) return 'y';
+    return `(y ${k > 0 ? '−' : '+'} ${nStr(Math.abs(k))})`;
+  }
+
+  function overSq(v, t, denom) {
+    const num = Math.abs(t) < 0.05 ? `${v}<sup>2</sup>` : `(${v} ${t > 0 ? '−' : '+'} ${nStr(Math.abs(t))})<sup>2</sup>`;
+    const d = nStr(denom);
+    return `<span class="mfrac"><span class="mnum">${num}</span><span class="mline"></span><span class="mden">${d}<sup>2</sup></span></span>`;
+  }
+
+  function polyTerm(coef, piece, first) {
+    const c = n(coef, 2);
+    if (c === 0) return '';
+    const abs = nStr(Math.abs(c), 2);
+    let body;
+    if (piece && Math.abs(Math.abs(c) - 1) < 0.01) body = piece;
+    else if (piece) body = `${abs}${piece}`;
+    else body = abs;
+    if (first) return (c < 0 ? '−' : '') + body;
+    return (c > 0 ? ' + ' : ' − ') + body;
+  }
+
+  function polyEq(terms) {
+    let first = true;
+    let out = '';
+    for (const t of terms) {
+      const s = polyTerm(t.c, t.v, first);
+      if (s) { out += s; first = false; }
+    }
+    return out + ' = 0';
+  }
+
+  function polyExpr(terms) {
+    let first = true;
+    let out = '';
+    for (const t of terms) {
+      const s = polyTerm(t.c, t.v, first);
+      if (s) { out += s; first = false; }
+    }
+    return out || '0';
+  }
+
+  function yEqualsMxPlusC(m, c) {
+    if (Math.abs(m) < 0.05) return `y = ${nStr(c)}`;
+    let s = 'y = ';
+    if (Math.abs(m - 1) < 0.01) s += 'x';
+    else if (Math.abs(m + 1) < 0.01) s += '−x';
+    else s += `${nStr(m)}x`;
+    if (Math.abs(c) < 0.05) return s;
+    return s + (c > 0 ? ` + ${nStr(c)}` : ` − ${nStr(Math.abs(c))}`);
+  }
+
+  function roundParabolaA(v) {
+    const scale = 10 ** PARABOLA_A_DP;
+    return Math.round(v * scale) / scale;
+  }
+
+  function snapParabolaA(v) {
+    const r = roundParabolaA(v);
+    if (Math.abs(r) < 0.05) return v >= 0 ? PARABOLA_A_SNAP : -PARABOLA_A_SNAP;
+    return r;
+  }
+
+  function parabolaAUse(a) {
+    let r = roundParabolaA(a);
+    if (r === 0) r = a >= 0 ? 0.01 : -0.01;
+    return r;
+  }
+
+  function parabolaAInEq(a) {
+    const r = parabolaAUse(a);
+    if (Math.abs(r - 1) < 0.005) return '';
+    if (Math.abs(r + 1) < 0.005) return '−';
+    if (r < 0) return `−${nStrExact(Math.abs(r), PARABOLA_A_DP)}`;
+    return nStrExact(r, PARABOLA_A_DP);
+  }
+
+  function yEqualsParabola(a, h, k) {
+    let s = 'y = ';
+    const inner = Math.abs(h) < 0.05
+      ? 'x<sup>2</sup>'
+      : `(x ${h > 0 ? '−' : '+'} ${nStr(Math.abs(h))})<sup>2</sup>`;
+    const aPart = parabolaAInEq(a);
+    if (aPart === '') s += inner;
+    else s += `${aPart}${inner}`;
+    if (Math.abs(k) < 0.05) return s;
+    return s + (k > 0 ? ` + ${nStr(k)}` : ` − ${nStr(Math.abs(k))}`);
+  }
+
+  function buildEquations() {
+    const p = params[type];
+    switch (type) {
+      case 'line': {
+        const m = n(p.m, 3);
+        const c = n(p.c, 3);
+        return { std: yEqualsMxPlusC(m, c), gen: '' };
+      }
+      case 'parabola': {
+        const p = params.parabola;
+        const a = parabolaAUse(p.a);
+        const A = a;
+        const B = -2 * a * p.h;
+        const C = a * p.h * p.h + p.k;
+        const gen = `y = ${polyExpr([
+          { c: A, v: 'x<sup>2</sup>' },
+          { c: B, v: 'x' },
+          { c: C, v: '' },
+        ])}`;
+        return { std: yEqualsParabola(p.a, n(p.h, 3), n(p.k, 3)), gen };
+      }
+      case 'circle': {
+        const p = params.circle;
+        return { std: circleEq(n(p.h, 3), n(p.k, 3), n(p.r, 2)), gen: '' };
+      }
+      case 'ellipse': {
+        const std = `${overSq('x', p.h, p.a)}<span class="eq-op">+</span>${overSq('y', p.k, p.b)} = 1`;
+        const gen = polyEq([
+          { c: p.b * p.b, v: 'x²' }, { c: p.a * p.a, v: 'y²' },
+          { c: -2 * p.b * p.b * p.h, v: 'x' }, { c: -2 * p.a * p.a * p.k, v: 'y' },
+          { c: p.b * p.b * p.h * p.h + p.a * p.a * p.k * p.k - p.a * p.a * p.b * p.b, v: '' },
+        ]);
+        return { std, gen };
+      }
+      case 'hyperbola': {
+        const std = `${overSq('x', p.h, p.a)}<span class="eq-op">−</span>${overSq('y', p.k, p.b)} = 1`;
+        const gen = polyEq([
+          { c: p.b * p.b, v: 'x²' }, { c: -p.a * p.a, v: 'y²' },
+          { c: -2 * p.b * p.b * p.h, v: 'x' }, { c: 2 * p.a * p.a * p.k, v: 'y' },
+          { c: p.b * p.b * p.h * p.h + p.a * p.a * p.k * p.k - p.a * p.a * p.b * p.b, v: '' },
+        ]);
+        return { std, gen };
+      }
+      default:
+        return { std: '', gen: '' };
+    }
+  }
+
+  function eqPlain() {
+    const e = buildEquations();
+    const std = e.std.replace(/<[^>]+>/g, '');
+    if (type === 'parabola') {
+      const gen = e.gen.replace(/<[^>]+>/g, '');
+      return parabolaEqTab === 'gen' ? gen : std;
+    }
+    return (type === 'line' || type === 'circle') ? std : `${std}; ${e.gen.replace(/<[^>]+>/g, '')}`;
+  }
+
+  function sliderRange(key) {
+    const def = SLIDER_DEFS[type].find(d => d.key === key);
+    return def ? [def.min, def.max] : [0, 1];
+  }
+
+  function toX(x) { return CX + x * SCALE + panX; }
+  function toY(y) { return CY - y * SCALE + panY; }
+
+  function visibleXMin() { return (-CX - panX) / SCALE; }
+  function visibleXMax() { return (CSS_W - CX - panX) / SCALE; }
+  function visibleYMin() { return (CY + panY - CSS_H) / SCALE; }
+  function visibleYMax() { return (CY + panY) / SCALE; }
+
+  function updateLayout() {
+    layoutNarrow = window.innerWidth < 600;
+  }
+
+  function insetBounds() {
+    const iw = 192;
+    const ih = 158;
+    if (layoutNarrow) {
+      return { ix: (CSS_W - iw) * 0.5, iy: CSS_H - ih - 8, iw, ih };
+    }
+    return { ix: CSS_W - 202, iy: 10, iw, ih };
+  }
+
+  function pointInInset(clientX, clientY) {
+    if (!view3d) return false;
+    const r = canvas.getBoundingClientRect();
+    const lx = (clientX - r.left) * (CSS_W / r.width);
+    const ly = (clientY - r.top) * (CSS_H / r.height);
+    const { ix, iy, iw, ih } = insetBounds();
+    return lx >= ix && lx <= ix + iw && ly >= iy && ly <= iy + ih;
+  }
+
+  function canvasDelta(e) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      dx: (e.clientX - panStartClientX) * (CSS_W / r.width),
+      dy: (e.clientY - panStartClientY) * (CSS_H / r.height),
+    };
+  }
+
+  function startPan(e) {
+    if (view3d) {
+      if (pointInInset(e.clientX, e.clientY)) return;
+      cone3dDragging = true;
+      arcballPrev = arcballPoint(e.clientX, e.clientY);
+      canvas.classList.add('is-rotating');
+      return;
+    }
+    panning = true;
+    panStartClientX = e.clientX;
+    panStartClientY = e.clientY;
+    panStartX = panX;
+    panStartY = panY;
+    canvas.classList.add('is-panning');
+  }
+
+  function movePan(e) {
+    if (cone3dDragging) {
+      const cur = arcballPoint(e.clientX, e.clientY);
+      if (arcballPrev) {
+        const dot = arcballPrev[0] * cur[0] + arcballPrev[1] * cur[1] + arcballPrev[2] * cur[2];
+        const ax = arcballPrev[1] * cur[2] - arcballPrev[2] * cur[1];
+        const ay = arcballPrev[2] * cur[0] - arcballPrev[0] * cur[2];
+        const az = arcballPrev[0] * cur[1] - arcballPrev[1] * cur[0];
+        const alen = Math.hypot(ax, ay, az);
+        if (alen > 1e-5) {
+          const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * 1.35;
+          viewQuat = quatMul(quatFromAxisAngle([ax / alen, ay / alen, az / alen], angle), viewQuat);
+        }
+      }
+      arcballPrev = cur;
+      scheduleDraw();
+      return;
+    }
+    if (!panning) return;
+    const { dx, dy } = canvasDelta(e);
+    panX = panStartX + dx;
+    panY = panStartY + dy;
+    gridCache = null;
+    scheduleDraw();
+  }
+
+  function endPan() {
+    if (cone3dDragging) {
+      cone3dDragging = false;
+      arcballPrev = null;
+      canvas.classList.remove('is-rotating');
+      return;
+    }
+    if (!panning) return;
+    panning = false;
+    canvas.classList.remove('is-panning');
+  }
+
+  function animatePanTo(tx, ty, onDone) {
+    if (panAnimId) cancelAnimationFrame(panAnimId);
+    if (reducedMotion) {
+      panX = tx;
+      panY = ty;
+      gridCache = null;
+      scheduleDraw(true);
+      onDone?.();
+      return;
+    }
+    function step() {
+      const dx = tx - panX;
+      const dy = ty - panY;
+      if (Math.hypot(dx, dy) < 0.5) {
+        panX = tx;
+        panY = ty;
+        panAnimId = null;
+        gridCache = null;
+        scheduleDraw(true);
+        onDone?.();
+        return;
+      }
+      panX += dx * PAN_LERP;
+      panY += dy * PAN_LERP;
+      gridCache = null;
+      scheduleDraw();
+      panAnimId = requestAnimationFrame(step);
+    }
+    panAnimId = requestAnimationFrame(step);
+  }
+
+  function resetPan() {
+    animatePanTo(0, 0);
+  }
+
+  function buildGridCache() {
+    if (!colors) readColors();
+    const c = colors;
+    const g = document.createElement('canvas');
+    g.width = Math.round(CSS_W * dpr);
+    g.height = Math.round(CSS_H * dpr);
+    const gx = g.getContext('2d');
+    gx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    gx.fillStyle = c.canvasBg;
+    gx.fillRect(0, 0, CSS_W, CSS_H);
+    gx.strokeStyle = c.border + '55';
+    gx.lineWidth = 1;
+    const xMin = Math.floor((0 - CX) / SCALE) - 1;
+    const xMax = Math.ceil((CSS_W - CX) / SCALE) + 1;
+    const yMin = Math.floor((CY - CSS_H) / SCALE) - 1;
+    const yMax = Math.ceil(CY / SCALE) + 1;
+    for (let i = xMin; i <= xMax; i++) {
+      gx.beginPath(); gx.moveTo(toX(i), 0); gx.lineTo(toX(i), CSS_H); gx.stroke();
+    }
+    for (let j = yMin; j <= yMax; j++) {
+      gx.beginPath(); gx.moveTo(0, toY(j)); gx.lineTo(CSS_W, toY(j)); gx.stroke();
+    }
+    gx.strokeStyle = c.text;
+    gx.lineWidth = 2;
+    gx.beginPath();
+    gx.moveTo(0, toY(0)); gx.lineTo(CSS_W, toY(0));
+    gx.moveTo(toX(0), 0); gx.lineTo(toX(0), CSS_H);
+    gx.stroke();
+    gx.fillStyle = c.muted;
+    gx.font = '12px IBM Plex Mono, monospace';
+    gx.textAlign = 'left';
+    gx.textBaseline = 'alphabetic';
+    gx.fillText('x', CSS_W - 18, toY(0) + 16);
+    gx.fillText('y', toX(0) + 8, 14);
+    gx.fillText('O', toX(0) - 16, toY(0) + 16);
+    gridCache = g;
+  }
+
+  function strokeCurve(points) {
+    if (points.length < 2) return;
+    ctx.strokeStyle = colors.curve;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(toX(points[0].x), toY(points[0].y));
+    for (let i = 1; i < points.length; i++) ctx.lineTo(toX(points[i].x), toY(points[i].y));
+    ctx.stroke();
+  }
+
+  function drawFocus(x, y, label) {
+    const px = toX(x);
+    const py = toY(y);
+
+    ctx.save();
+
+    // Dot — ring + glow so it stays visible on the curve
+    ctx.shadowColor = colors.focus;
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = colors.surface2;
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = colors.focus;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = colors.focus;
+    ctx.beginPath();
+    ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (label) {
+      const font = '600 11px Noto Sans Thai, sans-serif';
+      ctx.font = font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+
+      const tw = ctx.measureText(label).width;
+      const padX = 6;
+      const padY = 4;
+      const boxW = tw + padX * 2;
+      const boxH = 15 + padY;
+      const lx = px;
+      const ly = py - 10;
+      const boxX = lx - boxW / 2;
+      const boxY = ly - boxH;
+
+      // Label pill — drop shadow + border
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 2;
+      ctx.fillStyle = colors.surface2;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 5);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = colors.focus;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Text halo (outline) then fill
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = colors.surface2;
+      ctx.strokeText(label, lx, ly);
+      ctx.fillStyle = colors.focus;
+      ctx.fillText(label, lx, ly);
+    }
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.restore();
+  }
+
+  function drawLineCar(m, c) {
+    const y = m * carX + c;
+    if (y < visibleYMin() - 1 || y > visibleYMax() + 1) return;
+    const px = toX(carX);
+    const py = toY(y);
+    const ang = -Math.atan(m);
+
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(ang);
+
+    // body
+    ctx.fillStyle = colors.accent;
+    ctx.beginPath();
+    ctx.roundRect(-13, -8, 26, 12, 3);
+    ctx.fill();
+
+    // top
+    ctx.fillStyle = colors.curve;
+    ctx.beginPath();
+    ctx.roundRect(-7, -13, 14, 6, 2);
+    ctx.fill();
+
+    // wheels
+    ctx.fillStyle = colors.text;
+    ctx.beginPath();
+    ctx.arc(-8, 5, 3, 0, Math.PI * 2);
+    ctx.arc(8, 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function updateLineCarButton() {
+    btnLineCar.setAttribute('aria-pressed', String(carRunning));
+    btnLineCar.textContent = carRunning ? '⏹ หยุด' : '🚗 รถ';
+  }
+
+  function stopLineCar() {
+    carRunning = false;
+    if (carAnimId) cancelAnimationFrame(carAnimId);
+    carAnimId = null;
+    updateLineCarButton();
+    scheduleDraw();
+  }
+
+  function lineCarSpeedBySlope(m) {
+    const a = Math.abs(m);
+    const base = 1.4;
+    if (m > 0) return base / (1 + a * 2.2); // uphill: slower (steep => very slow)
+    if (m < 0) return base * (1 + a * 1.6); // downhill: faster
+    return base; // flat: easy
+  }
+
+  function runLineCar(ts) {
+    if (!carRunning || type !== 'line') return;
+    const { m, c } = params.line;
+    if (!carLastTs) carLastTs = ts;
+    const dt = Math.min(0.05, (ts - carLastTs) / 1000);
+    carLastTs = ts;
+
+    const speed = lineCarSpeedBySlope(m);
+    carX += speed * dt;
+
+    const xEnd = visibleXMax() + 0.8;
+    if (carX > xEnd) {
+      carRunning = false;
+      carAnimId = null;
+      updateLineCarButton();
+      scheduleDraw();
+      return;
+    }
+
+    scheduleDraw();
+    carAnimId = requestAnimationFrame(runLineCar);
+  }
+
+  function launchLineCar() {
+    if (type !== 'line') return;
+    if (carRunning) {
+      stopLineCar();
+      return;
+    }
+    const xStart = visibleXMin() - 0.8;
+    carX = xStart;
+    carLastTs = 0;
+    carRunning = true;
+    updateLineCarButton();
+    carAnimId = requestAnimationFrame(runLineCar);
+  }
+
+  function drawGuideLine(x1, y1, x2, y2, dash) {
+    ctx.strokeStyle = colors.guide;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash(dash || [6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(toX(x1), toY(y1));
+    ctx.lineTo(toX(x2), toY(y2));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawCenter(h, k) {
+    ctx.strokeStyle = colors.guide;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(toX(h - 0.35), toY(k));
+    ctx.lineTo(toX(h + 0.35), toY(k));
+    ctx.moveTo(toX(h), toY(k - 0.35));
+    ctx.lineTo(toX(h), toY(k + 0.35));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ── 3D Conic Section (double cone + cutting plane) ──
+  function quatFromAxisAngle([x, y, z], ang) {
+    const s = Math.sin(ang * 0.5);
+    return [Math.cos(ang * 0.5), x * s, y * s, z * s];
+  }
+
+  function quatMul(a, b) {
+    const [aw, ax, ay, az] = a;
+    const [bw, bx, by, bz] = b;
+    const q = [
+      aw * bw - ax * bx - ay * by - az * bz,
+      aw * bx + ax * bw + ay * bz - az * by,
+      aw * by - ax * bz + ay * bw + az * bx,
+      aw * bz + ax * by - ay * bx + az * bw,
+    ];
+    const len = Math.hypot(q[0], q[1], q[2], q[3]) || 1;
+    return q.map(v => v / len);
+  }
+
+  function quatRotate(q, [px, py, pz]) {
+    const [w, x, y, z] = q;
+    const tx = 2 * (y * pz - z * py);
+    const ty = 2 * (z * px - x * pz);
+    const tz = 2 * (x * py - y * px);
+    return [
+      px + w * tx + y * tz - z * ty,
+      py + w * ty + z * tx - x * tz,
+      pz + w * tz + x * ty - y * tx,
+    ];
+  }
+
+  function defaultViewQuat() {
+    return quatMul(
+      quatFromAxisAngle([0, 1, 0], 0.62),
+      quatFromAxisAngle([1, 0, 0], 0.48),
+    );
+  }
+
+  function arcballPoint(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const lx = (clientX - rect.left) * (CSS_W / rect.width);
+    const ly = (clientY - rect.top) * (CSS_H / rect.height);
+    const cx = CSS_W * 0.38;
+    const cy = CSS_H * 0.54;
+    const rad = Math.min(CSS_W, CSS_H) * 0.42;
+    let x = (lx - cx) / rad;
+    let y = (cy - ly) / rad;
+    const d2 = x * x + y * y;
+    if (d2 > 1) {
+      const s = Math.sqrt(d2);
+      x /= s;
+      y /= s;
+      return [x, y, 0];
+    }
+    return [x, y, Math.sqrt(1 - d2)];
+  }
+
+  function planePreset(t) {
+    return { ...(PLANE_PRESETS[t] || PLANE_PRESETS.circle) };
+  }
+
+  function planeNormal(tilt, spin) {
+    return [
+      Math.sin(tilt) * Math.cos(spin),
+      Math.sin(tilt) * Math.sin(spin),
+      Math.cos(tilt),
+    ];
+  }
+
+  function getActivePlane() {
+    if (planeMorph) {
+      const t = Math.min(1, (performance.now() - planeMorph.start) / planeMorph.duration);
+      const u = easeInOut(t);
+      const lerp = (a, b) => a + (b - a) * u;
+      return {
+        tilt: lerp(planeMorph.from.tilt, planeMorph.to.tilt),
+        spin: lerp(planeMorph.from.spin, planeMorph.to.spin),
+        height: lerp(planeMorph.from.height, planeMorph.to.height),
+      };
+    }
+    return { ...planeState };
+  }
+
+  function startPlaneMorph(fromType, toType) {
+    if (reducedMotion) {
+      planeState = planePreset(toType);
+      planeMorph = null;
+      return;
+    }
+    planeMorph = {
+      from: getActivePlane(),
+      to: planePreset(toType),
+      start: performance.now(),
+      duration: PLANE_MORPH_MS,
+    };
+  }
+
+  function rotateView3(p) {
+    return quatRotate(viewQuat, p);
+  }
+
+  function project3([x, y, z]) {
+    const [rx, ry, rz] = rotateView3([x, y, z]);
+    const focal = 2.6;
+    const persp = focal / (focal + rz);
+    const scale = 108;
+    return {
+      x: CSS_W * 0.38 + rx * scale * persp,
+      y: CSS_H * 0.54 - ry * scale * persp,
+      depth: rz,
+    };
+  }
+
+  function intersectConePlane(plane) {
+    const n = planeNormal(plane.tilt, plane.spin);
+    const d = n[2] * plane.height;
+    const samples = [];
+    const N = 200;
+    for (let i = 0; i < N; i++) {
+      const theta = (i / N) * 2 * Math.PI;
+      const coef = CONE_TAN * (n[0] * Math.cos(theta) + n[1] * Math.sin(theta)) + n[2];
+      if (Math.abs(coef) < 1e-9) continue;
+      const t = d / coef;
+      if (Math.abs(t) > CONE_H * 1.01) continue;
+      samples.push({
+        theta,
+        x: CONE_TAN * Math.cos(theta) * t,
+        y: CONE_TAN * Math.sin(theta) * t,
+        z: t,
+      });
+    }
+    return organizeSectionCurves(samples);
+  }
+
+  function organizeSectionCurves(samples) {
+    if (samples.length < 3) return { closed: [], open: samples.length ? [samples] : [] };
+
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+    const MAX_STEP = 0.22;
+    const chunks = [];
+    let cur = [samples[0]];
+    for (let i = 1; i < samples.length; i++) {
+      if (dist(samples[i - 1], samples[i]) > MAX_STEP) {
+        if (cur.length > 1) chunks.push(cur);
+        cur = [samples[i]];
+      } else {
+        cur.push(samples[i]);
+      }
+    }
+    if (cur.length > 1) chunks.push(cur);
+    if (!chunks.length) return { closed: [], open: [] };
+
+    const closedTypes = new Set(['circle', 'ellipse']);
+    if (chunks.length === 1 && closedTypes.has(type)) {
+      const wrap = dist(chunks[0][chunks[0].length - 1], chunks[0][0]);
+      if (wrap < MAX_STEP) return { closed: [chunks[0]], open: [] };
+    }
+    return { closed: [], open: chunks };
+  }
+
+  function coneRim(z) {
+    const r = Math.abs(z) * CONE_TAN;
+    const pts = [];
+    for (let i = 0; i <= 48; i++) {
+      const th = i / 48 * Math.PI * 2;
+      pts.push([r * Math.cos(th), r * Math.sin(th), z]);
+    }
+    return pts;
+  }
+
+  function draw3DLine(a, b, stroke, width, dash) {
+    const pa = project3(a);
+    const pb = project3(b);
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = width;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function draw3DPolyline(points, stroke, width, fill, closed) {
+    if (points.length < 2) return;
+    const proj = points.map(p => project3(p));
+    ctx.beginPath();
+    ctx.moveTo(proj[0].x, proj[0].y);
+    for (let i = 1; i < proj.length; i++) ctx.lineTo(proj[i].x, proj[i].y);
+    if (closed) ctx.closePath();
+    if (fill) {
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  function draw3DConeWire() {
+    for (const z of [CONE_H, -CONE_H]) {
+      draw3DPolyline(coneRim(z), colors.accent + '99', 1.5);
+    }
+    for (let i = 0; i < 16; i++) {
+      const th = i / 16 * Math.PI * 2;
+      const dx = Math.cos(th) * CONE_TAN * CONE_H;
+      const dy = Math.sin(th) * CONE_TAN * CONE_H;
+      draw3DLine([0, 0, 0], [dx, dy, CONE_H], colors.accent + '77', 1);
+      draw3DLine([0, 0, 0], [dx, dy, -CONE_H], colors.accent + '55', 1);
+    }
+  }
+
+  function draw3DAxis() {
+    draw3DLine([0, 0, -CONE_H * 1.08], [0, 0, CONE_H * 1.08], colors.focus + 'cc', 1.5, [5, 4]);
+  }
+
+  function planeBasis(plane) {
+    const n = planeNormal(plane.tilt, plane.spin);
+    const ax = [0, 0, plane.height];
+    let ux = 1; let uy = 0; let uz = 0;
+    if (Math.abs(n[0]) > 0.85) { ux = 0; uy = 1; uz = 0; }
+    let vx = uy * n[2] - uz * n[1];
+    let vy = uz * n[0] - ux * n[2];
+    let vz = ux * n[1] - uy * n[0];
+    let len = Math.hypot(vx, vy, vz) || 1;
+    vx /= len; vy /= len; vz /= len;
+    let wx = n[1] * vz - n[2] * vy;
+    let wy = n[2] * vx - n[0] * vz;
+    let wz = n[0] * vy - n[1] * vx;
+    len = Math.hypot(wx, wy, wz) || 1;
+    wx /= len; wy /= len; wz /= len;
+    return { n, ax, vx, vy, vz, wx, wy, wz };
+  }
+
+  function draw3DPlane(plane) {
+    const { n, ax, vx, vy, vz, wx, wy, wz } = planeBasis(plane);
+    const s = 1.38;
+    const corners = [
+      [ax[0] + s * (vx + wx), ax[1] + s * (vy + wy), ax[2] + s * (vz + wz)],
+      [ax[0] + s * (vx - wx), ax[1] + s * (vy - wy), ax[2] + s * (vz - wz)],
+      [ax[0] + s * (-vx - wx), ax[1] + s * (-vy - wy), ax[2] + s * (-vz - wz)],
+      [ax[0] + s * (-vx + wx), ax[1] + s * (-vy + wy), ax[2] + s * (-vz + wz)],
+    ];
+    const proj = corners.map(c => project3(c));
+    ctx.beginPath();
+    ctx.moveTo(proj[0].x, proj[0].y);
+    for (let i = 1; i < proj.length; i++) ctx.lineTo(proj[i].x, proj[i].y);
+    ctx.closePath();
+    ctx.fillStyle = colors.guide + '40';
+    ctx.fill();
+    ctx.strokeStyle = colors.guide + 'cc';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    void n;
+  }
+
+  function draw3DSectionCurve(sectionData) {
+    const closed = sectionData.closed || [];
+    const open = sectionData.open || [];
+    const fillClosed = colors.accent + '55';
+    const drawLoop = (chunk, isClosed) => {
+      const poly = chunk.map(p => [p.x, p.y, p.z]);
+      if (isClosed) {
+        draw3DPolyline(poly, fillClosed, 0, fillClosed, true);
+        draw3DPolyline(poly, colors.accent + '88', 5, null, true);
+        draw3DPolyline(poly, colors.curve, 3, null, true);
+      } else {
+        draw3DPolyline(poly, colors.curve + '55', 8, null, false);
+        draw3DPolyline(poly, colors.curve, 4, null, false);
+      }
+    };
+    for (const loop of closed) drawLoop(loop, true);
+    for (const branch of open) drawLoop(branch, false);
+  }
+
+  function coneLineDirections(n) {
+    const nx = n[0];
+    const ny = n[1];
+    const nz = n[2];
+    const R = Math.hypot(nx, ny);
+    const c = -nz / CONE_TAN;
+    if (R < 1e-5) {
+      return [[CONE_TAN, 0, 1], [-CONE_TAN, 0, -1]];
+    }
+    if (Math.abs(c) > R + 0.02) return [];
+    const base = Math.acos(Math.max(-1, Math.min(1, c / R)));
+    const psi = Math.atan2(ny, nx);
+    const dirs = [];
+    for (const s of [1, -1]) {
+      const phi = psi + s * base;
+      dirs.push([CONE_TAN * Math.cos(phi), CONE_TAN * Math.sin(phi), 1]);
+    }
+    return dirs;
+  }
+
+  function draw3DLineSection(plane) {
+    const n = planeNormal(plane.tilt, plane.spin);
+    const dirs = coneLineDirections(n);
+    const t = CONE_H * 1.02;
+    for (const [dx, dy, dz] of dirs) {
+      const len = Math.hypot(dx, dy, dz);
+      const ux = dx / len;
+      const uy = dy / len;
+      const uz = dz / len;
+      draw3DLine([-ux * t, -uy * t, -uz * t], [ux * t, uy * t, uz * t], colors.focus + '55', 12);
+      draw3DLine([-ux * t, -uy * t, -uz * t], [ux * t, uy * t, uz * t], colors.curve, 6);
+    }
+    // apex marker
+    const apex = project3([0, 0, 0]);
+    ctx.fillStyle = colors.focus;
+    ctx.beginPath();
+    ctx.arc(apex.x, apex.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function isLineCut(plane) {
+    return type === 'line' || Math.abs(plane.height) < 0.04;
+  }
+
+  function draw2DInset() {
+    const { ix, iy, iw, ih } = insetBounds();
+    const iCX = ix + iw * 0.5;
+    const iCY = iy + ih * 0.56;
+    const iS = 21;
+
+    ctx.save();
+    ctx.fillStyle = colors.surface;
+    ctx.strokeStyle = colors.border;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(ix, iy, iw, ih, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = '700 10px Noto Sans Thai, sans-serif';
+    ctx.fillStyle = colors.muted;
+    ctx.textAlign = 'left';
+    ctx.fillText('ภาพตัด → ' + (TYPE_LABELS[type] || type), ix + 8, iy + 14);
+
+    ctx.beginPath();
+    ctx.rect(ix + 1, iy + 18, iw - 2, ih - 20);
+    ctx.clip();
+
+    const toIX = x => iCX + x * iS;
+    const toIY = y => iCY - y * iS;
+
+    ctx.strokeStyle = colors.border + '66';
+    ctx.lineWidth = 1;
+    for (let g = -4; g <= 4; g++) {
+      ctx.beginPath();
+      ctx.moveTo(toIX(g), toIY(-4)); ctx.lineTo(toIX(g), toIY(4)); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(toIX(-4), toIY(g)); ctx.lineTo(toIX(4), toIY(g)); ctx.stroke();
+    }
+    ctx.strokeStyle = colors.text;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(toIX(-4), toIY(0)); ctx.lineTo(toIX(4), toIY(0));
+    ctx.moveTo(toIX(0), toIY(-4)); ctx.lineTo(toIX(0), toIY(4));
+    ctx.stroke();
+
+    const p = params[type];
+    ctx.strokeStyle = colors.curve;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    const strokeInset = pts => {
+      if (pts.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(toIX(pts[0].x), toIY(pts[0].y));
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(toIX(pts[i].x), toIY(pts[i].y));
+      ctx.stroke();
+    };
+
+    if (graphMorph) {
+      const morph = graphMorph;
+      const t = Math.min(1, (performance.now() - morph.start) / morph.duration);
+      const easeT = easeInOut(t);
+      const lerp = (a, b, u) => a + (b - a) * u;
+      const xL = -3.5; const xR = 3.5;
+      const pts = [];
+      if ((morph.fromType === 'line' && morph.toType === 'parabola') ||
+          (morph.fromType === 'parabola' && morph.toType === 'line')) {
+        const fromLine = morph.fromType === 'line' ? morph.from.p : morph.to.p;
+        const toParab = morph.toType === 'parabola' ? morph.to.p : morph.from.p;
+        const blend = morph.toType === 'parabola' ? easeT : (1 - easeT);
+        const aVal = parabolaAUse(toParab.a);
+        for (let x = xL; x <= xR; x += 0.15) {
+          const y = (fromLine.m * x + fromLine.c) + (toParab.k + aVal * (x - toParab.h) ** 2 - (fromLine.m * x + fromLine.c)) * blend;
+          pts.push({ x, y });
+        }
+        strokeInset(pts);
+      } else {
+        const N = 80;
+        const fromPoint = u => {
+          const mp = morph.from.p; const mt = morph.fromType;
+          const x = lerp(xL, xR, u);
+          if (mt === 'line') return { x, y: mp.m * x + mp.c };
+          if (mt === 'parabola') return { x, y: mp.k + parabolaAUse(mp.a) * (x - mp.h) ** 2 };
+          const ang = u * Math.PI * 2;
+          return { x: mp.h + mp.r * Math.cos(ang), y: mp.k + mp.r * Math.sin(ang) };
+        };
+        const toPoint = u => {
+          const mp = morph.to.p; const mt = morph.toType;
+          const x = lerp(xL, xR, u);
+          if (mt === 'line') return { x, y: mp.m * x + mp.c };
+          if (mt === 'parabola') return { x, y: mp.k + parabolaAUse(mp.a) * (x - mp.h) ** 2 };
+          const ang = u * Math.PI * 2;
+          return { x: mp.h + mp.r * Math.cos(ang), y: mp.k + mp.r * Math.sin(ang) };
+        };
+        for (let i = 0; i < N; i++) {
+          const u = i / (N - 1);
+          const A = fromPoint(u); const B = toPoint(u);
+          pts.push({ x: lerp(A.x, B.x, easeT), y: lerp(A.y, B.y, easeT) });
+        }
+        strokeInset(pts);
+      }
+    } else {
+      switch (type) {
+        case 'line': {
+          const { m, c } = p;
+          ctx.lineWidth = type === 'line' && view3d ? 3.5 : 2.5;
+          strokeInset([{ x: -3.5, y: m * -3.5 + c }, { x: 3.5, y: m * 3.5 + c }]);
+          break;
+        }
+        case 'parabola': {
+          const { a, h, k } = p;
+          const aVal = parabolaAUse(a);
+          const pts = [];
+          for (let x = -3.2; x <= 3.2; x += 0.12) pts.push({ x, y: k + aVal * (x - h) ** 2 });
+          strokeInset(pts);
+          break;
+        }
+        case 'circle': {
+          ctx.beginPath();
+          ctx.arc(toIX(p.h), toIY(p.k), p.r * iS, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'ellipse': {
+          ctx.beginPath();
+          for (let i = 0; i <= 64; i++) {
+            const t = i / 64 * Math.PI * 2;
+            const x = p.h + p.a * Math.cos(t);
+            const y = p.k + p.b * Math.sin(t);
+            if (i === 0) ctx.moveTo(toIX(x), toIY(y));
+            else ctx.lineTo(toIX(x), toIY(y));
+          }
+          ctx.closePath();
+          ctx.stroke();
+          break;
+        }
+        case 'hyperbola': {
+          for (const sign of [1, -1]) {
+            const pts = [];
+            for (let x = p.h + p.a; x <= p.h + 5; x += 0.15) {
+              const y = p.k + sign * p.b * Math.sqrt((x - p.h) ** 2 / (p.a * p.a) - 1);
+              if (isFinite(y)) pts.push({ x, y });
+            }
+            strokeInset(pts);
+          }
+          break;
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function draw3DScene() {
+    ctx.fillStyle = colors.canvasBg;
+    ctx.fillRect(0, 0, CSS_W, CSS_H);
+
+    const plane = getActivePlane();
+    if (planeMorph) {
+      const t = Math.min(1, (performance.now() - planeMorph.start) / planeMorph.duration);
+      if (t >= 1) {
+        planeState = { ...planeMorph.to };
+        planeMorph = null;
+      }
+    }
+
+    draw3DConeWire();
+    draw3DAxis();
+    draw3DPlane(plane);
+    if (isLineCut(plane)) {
+      draw3DLineSection(plane);
+    } else {
+      draw3DSectionCurve(intersectConePlane(plane));
+    }
+
+    ctx.font = layoutNarrow ? '700 9px Noto Sans Thai, sans-serif' : '700 12px Noto Sans Thai, sans-serif';
+    ctx.fillStyle = colors.text;
+    ctx.textAlign = 'left';
+    const titleX = layoutNarrow ? 10 : 14;
+    ctx.fillText('🔮 ' + (TYPE_LABELS[type] || type), titleX, layoutNarrow ? 18 : 22);
+    ctx.font = layoutNarrow ? '600 8px Noto Sans Thai, sans-serif' : '600 10px Noto Sans Thai, sans-serif';
+    ctx.fillStyle = colors.muted;
+    if (layoutNarrow) {
+      ctx.fillText(PLANE_HINTS[type] || '', titleX, 30);
+      ctx.fillText('ลากหมุน · ดับเบิลคลิกรีเซ็ต', titleX, 42);
+    } else {
+      ctx.fillText(PLANE_HINTS[type] || '', 14, 38);
+      ctx.fillText('ลากหมุน · ดับเบิลคลิกรีเซ็ต · เปลี่ยนชนิด morph', 14, 52);
+    }
+
+    draw2DInset();
+  }
+
+  function updateView3dUI() {
+    btnView3d.setAttribute('aria-pressed', String(view3d));
+    canvas.classList.toggle('view3d-mode', view3d);
+    legendPan.hidden = view3d;
+    legendCone.hidden = !view3d;
+    legendPlane.hidden = !view3d;
+    legendRotate.hidden = !view3d;
+  }
+
+  function toggleView3d() {
+    view3d = !view3d;
+    if (view3d) {
+      planeState = planePreset(type);
+      planeMorph = null;
+    }
+    updateView3dUI();
+    scheduleDraw(true);
+  }
+
+  function drawConic() {
+    const p = params[type];
+
+    // Special morph: animate between line <-> parabola on the canvas
+    if (graphMorph) {
+      const morph = graphMorph;
+      const now = performance.now();
+      const t = Math.min(1, (now - morph.start) / morph.duration);
+      const easeT = easeInOut(t);
+      const fromAlpha = 1 - easeT;
+      const toAlpha = easeT;
+      const done = t >= 1;
+
+      // line <-> parabola true shape morph
+      if (
+        (morph.fromType === 'line' && morph.toType === 'parabola') ||
+        (morph.fromType === 'parabola' && morph.toType === 'line')
+      ) {
+        const fromLine = morph.fromType === 'line' ? morph.from.p : morph.to.p;
+        const toParab = morph.toType === 'parabola' ? morph.to.p : morph.from.p;
+        const blend = morph.toType === 'parabola' ? easeT : (1 - easeT);
+
+        const aVal = parabolaAUse(toParab.a);
+        const xL = visibleXMin();
+        const xR = visibleXMax();
+        const pts = [];
+
+        for (let x = xL; x <= xR; x += 0.12) {
+          const yLine = fromLine.m * x + fromLine.c;
+          const yParab = toParab.k + aVal * (x - toParab.h) ** 2;
+          const y = yLine + (yParab - yLine) * blend;
+          if (y >= visibleYMin() - 0.5 && y <= visibleYMax() + 0.5) pts.push({ x, y });
+        }
+
+        strokeCurve(pts);
+
+        // Morph highlight point (line intercept -> parabola vertex)
+        const fx = 0 + (toParab.h - 0) * blend;
+        const fy = fromLine.c + (toParab.k - fromLine.c) * blend;
+        const showMorphFocus = showCoords.line || showCoords.parabola;
+        if (showMorphFocus) drawFocus(fx, fy, formatCoordPair(fx, fy));
+
+        if (done) graphMorph = null;
+        return;
+      }
+
+      // line/parabola <-> circle (parametric point morph)
+      const isCircleLineMorph =
+        (morph.fromType === 'line' && morph.toType === 'circle') ||
+        (morph.fromType === 'circle' && morph.toType === 'line');
+      const isCircleParabolaMorph =
+        (morph.fromType === 'parabola' && morph.toType === 'circle') ||
+        (morph.fromType === 'circle' && morph.toType === 'parabola');
+
+      if (isCircleLineMorph || isCircleParabolaMorph) {
+        const xL = visibleXMin();
+        const xR = visibleXMax();
+        const N = 170;
+
+        const lerp = (a, b, u) => a + (b - a) * u;
+        const fromIsCircle = morph.fromType === 'circle';
+        const toIsCircle = morph.toType === 'circle';
+
+        // Angle anchor (circle): use xL on the non-circle side
+        let angleStart = 0;
+        if (toIsCircle) {
+          const pFrom = morph.from.p;
+          const yAnchor =
+            morph.fromType === 'line'
+              ? pFrom.m * xL + pFrom.c
+              : pFrom.k + parabolaAUse(pFrom.a) * (xL - pFrom.h) ** 2;
+          angleStart = Math.atan2(yAnchor - morph.to.p.k, xL - morph.to.p.h);
+        } else if (fromIsCircle) {
+          const pTo = morph.to.p;
+          const yAnchor =
+            morph.toType === 'line'
+              ? pTo.m * xL + pTo.c
+              : pTo.k + parabolaAUse(pTo.a) * (xL - pTo.h) ** 2;
+          angleStart = Math.atan2(yAnchor - morph.from.p.k, xL - morph.from.p.h);
+        }
+
+        // Circle angle span grows/shrinks during morph
+        const circleSpan = toIsCircle ? (2 * Math.PI * toAlpha) : (2 * Math.PI * fromAlpha);
+
+        function pointOnLine(p, u) {
+          const x = lerp(xL, xR, u);
+          return { x, y: p.m * x + p.c };
+        }
+
+        function pointOnParabola(p, u) {
+          const x = lerp(xL, xR, u);
+          const aVal = parabolaAUse(p.a);
+          return { x, y: p.k + aVal * (x - p.h) ** 2 };
+        }
+
+        function pointOnCircle(p, u) {
+          const angle = angleStart + u * circleSpan;
+          return { x: p.h + p.r * Math.cos(angle), y: p.k + p.r * Math.sin(angle) };
+        }
+
+        function fromPoint(u) {
+          const p = morph.from.p;
+          if (morph.fromType === 'line') return pointOnLine(p, u);
+          if (morph.fromType === 'parabola') return pointOnParabola(p, u);
+          return pointOnCircle(p, u);
+        }
+
+        function toPoint(u) {
+          const p = morph.to.p;
+          if (morph.toType === 'line') return pointOnLine(p, u);
+          if (morph.toType === 'parabola') return pointOnParabola(p, u);
+          return pointOnCircle(p, u);
+        }
+
+        const pts = [];
+        for (let i = 0; i < N; i++) {
+          const u = i / (N - 1);
+          const A = fromPoint(u);
+          const B = toPoint(u);
+          pts.push({ x: lerp(A.x, B.x, easeT), y: lerp(A.y, B.y, easeT) });
+        }
+
+        strokeCurve(pts);
+
+        // Focus interpolation
+        const focusOf = (kind, p) => {
+          if (kind === 'line') return { x: 0, y: p.c };
+          if (kind === 'parabola') return { x: p.h, y: p.k };
+          return { x: p.h, y: p.k };
+        };
+        const fFrom = focusOf(morph.fromType, morph.from.p);
+        const fTo = focusOf(morph.toType, morph.to.p);
+        const fx = lerp(fFrom.x, fTo.x, easeT);
+        const fy = lerp(fFrom.y, fTo.y, easeT);
+        const showFrom = morph.fromType in showCoords ? showCoords[morph.fromType] : true;
+        const showTo = morph.toType in showCoords ? showCoords[morph.toType] : true;
+        if (showFrom || showTo) drawFocus(fx, fy, formatCoordPair(fx, fy));
+
+        if (done) graphMorph = null;
+        return;
+      }
+
+      // If morph pair isn't handled, fall through to normal draw below.
+      if (done) graphMorph = null;
+    }
+
+    switch (type) {
+      case 'line': {
+        const { m, c } = p;
+        const xL = visibleXMin();
+        const xR = visibleXMax();
+        strokeCurve([
+          { x: xL, y: m * xL + c },
+          { x: xR, y: m * xR + c },
+        ]);
+        if (showCoords.line && c >= visibleYMin() && c <= visibleYMax()) drawFocus(0, c, formatCoordPair(0, c));
+        if (carRunning) drawLineCar(m, c);
+        break;
+      }
+      case 'parabola': {
+        const { a, h, k } = p;
+        const aVal = parabolaAUse(a);
+        const pts = [];
+        if (aVal > 0) {
+          const yMin = Math.max(visibleYMin(), k - 0.2);
+          const yMax = Math.min(visibleYMax(), k + 8);
+          const xHalf = Math.sqrt(Math.max(0, (yMax - k) / aVal));
+          const xL = Math.max(h - xHalf, visibleXMin());
+          const xR = Math.min(h + xHalf, visibleXMax());
+          for (let x = xL; x <= xR; x += 0.12) {
+            const y = k + aVal * (x - h) ** 2;
+            if (y >= yMin && y <= yMax) pts.push({ x, y });
+          }
+        } else {
+          const yMax = Math.min(visibleYMax(), k + 0.2);
+          const yMin = Math.max(visibleYMin(), k - 8);
+          const xHalf = Math.sqrt(Math.max(0, (k - yMin) / Math.abs(aVal)));
+          const xL = Math.max(h - xHalf, visibleXMin());
+          const xR = Math.min(h + xHalf, visibleXMax());
+          for (let x = xL; x <= xR; x += 0.12) {
+            const y = k + aVal * (x - h) ** 2;
+            if (y >= yMin && y <= yMax) pts.push({ x, y });
+          }
+        }
+        strokeCurve(pts);
+        if (showCoords.parabola) drawFocus(h, k, formatCoordPair(h, k));
+        break;
+      }
+      case 'circle': {
+        const { h, k } = p;
+        ctx.strokeStyle = colors.curve;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(toX(h), toY(k), p.r * SCALE, 0, Math.PI * 2);
+        ctx.stroke();
+        if (showCoords.circle) drawFocus(h, k, formatCoordPair(h, k));
+        break;
+      }
+      case 'ellipse': {
+        const { h, k } = p;
+        ctx.strokeStyle = colors.curve;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const steps = 100;
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps * Math.PI * 2;
+          const x = h + p.a * Math.cos(t);
+          const y = k + p.b * Math.sin(t);
+          if (i === 0) ctx.moveTo(toX(x), toY(y));
+          else ctx.lineTo(toX(x), toY(y));
+        }
+        ctx.closePath();
+        ctx.stroke();
+        const c = Math.sqrt(Math.max(0, p.a * p.a - p.b * p.b));
+        drawFocus(h - c, k, 'F₁');
+        drawFocus(h + c, k, 'F₂');
+        drawCenter(h, k);
+        break;
+      }
+      case 'hyperbola': {
+        const { h, k } = p;
+        const xMax = Math.min(h + 7, visibleXMax());
+        const step = 0.12;
+        for (const sign of [1, -1]) {
+          const pts = [];
+          for (let x = h + p.a; x <= xMax; x += step) {
+            const y = k + sign * p.b * Math.sqrt((x - h) ** 2 / (p.a * p.a) - 1);
+            if (isFinite(y)) pts.push({ x, y });
+          }
+          strokeCurve(pts);
+        }
+        const c = Math.sqrt(p.a * p.a + p.b * p.b);
+        drawFocus(h - c, k, 'F₁');
+        drawFocus(h + c, k, 'F₂');
+        drawCenter(h, k);
+        drawGuideLine(h - p.a, k - 5, h - p.a, k + 5);
+        drawGuideLine(h + p.a, k - 5, h + p.a, k + 5);
+        break;
+      }
+    }
+  }
+
+  function draw() {
+    if (!colors) readColors();
+    if (view3d) {
+      draw3DScene();
+      if (planeMorph || graphMorph) scheduleDraw();
+      return;
+    }
+    if (!gridCache) buildGridCache();
+    ctx.drawImage(gridCache, 0, 0, CSS_W, CSS_H);
+    drawConic();
+
+    // Continue morph frames until finished.
+    if (graphMorph) scheduleDraw();
+  }
+
+  function scheduleDraw(force) {
+    if (force) {
+      drawPending = false;
+      draw();
+      return;
+    }
+    if (drawPending) return;
+    drawPending = true;
+    requestAnimationFrame(() => {
+      drawPending = false;
+      draw();
+    });
+  }
+
+  function setEqHtml(el, html, cacheKey) {
+    if (cacheKey === el.dataset.cache) return;
+    el.dataset.cache = cacheKey;
+    if (html.indexOf('<') >= 0) el.innerHTML = html;
+    else el.textContent = html;
+  }
+
+  function syncParabolaEqTab() {
+    const isPara = type === 'parabola';
+    eqTabs.hidden = !isPara;
+    eqTabStd.setAttribute('aria-selected', String(parabolaEqTab === 'std'));
+    eqTabGen.setAttribute('aria-selected', String(parabolaEqTab === 'gen'));
+  }
+
+  function updateEqDisplay() {
+    const useAligned = COMPACT_TYPES.has(type);
+    eqAligned.hidden = !useAligned;
+    eqTplStd.hidden = useAligned;
+    eqStd.hidden = useAligned;
+
+    if (useAligned) {
+      if (type === 'parabola') {
+        eqTagStd.textContent = parabolaEqTab === 'gen'
+          ? 'สมการพาราโบลา แบบ 2'
+          : 'สมการพาราโบลา แบบ 1';
+      }
+      const html = buildAlignedEq();
+      setEqHtml(eqAligned, html, `${type}:${parabolaEqTab}:${html}`);
+      return;
+    }
+
+    const eq = buildEquations();
+    if (type === 'parabola') {
+      const tpl = EQ_TPL.parabola;
+      const showGen = parabolaEqTab === 'gen';
+      eqTagStd.textContent = showGen ? 'สมการพาราโบลา แบบ 2' : 'สมการพาราโบลา แบบ 1';
+      eqTplStd.textContent = showGen ? tpl.gen : tpl.std;
+      const html = showGen ? eq.gen : eq.std;
+      setEqHtml(eqStd, html, `${parabolaEqTab}:${html}`);
+      return;
+    }
+    setEqHtml(eqStd, eq.std, eq.std);
+    if (type !== 'line' && type !== 'circle') setEqHtml(eqGen, eq.gen, eq.gen);
+  }
+
+  function easeInOut(t) {
+    return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+  }
+
+  function valueDemoAt(start, min, max, t) {
+    const s = t * 3;
+    if (s < 1) return start + (max - start) * easeInOut(s);
+    if (s < 2) return max + (min - max) * easeInOut(s - 1);
+    return min + (start - min) * easeInOut(s - 2);
+  }
+
+  function valueDemoAtParabolaA(start, min, max, t) {
+    const crossHi = 0.18;
+    const crossLo = -0.18;
+    const segments = [
+      { w: 0.14, from: start, to: max },
+      { w: 0.12, from: max, to: crossHi },
+      { w: 0.44, from: crossHi, to: crossLo },
+      { w: 0.12, from: crossLo, to: min },
+      { w: 0.18, from: min, to: start },
+    ];
+    let acc = 0;
+    for (const seg of segments) {
+      if (t < acc + seg.w) {
+        const u = easeInOut((t - acc) / seg.w);
+        return roundParabolaA(seg.from + (seg.to - seg.from) * u);
+      }
+      acc += seg.w;
+    }
+    return roundParabolaA(start);
+  }
+
+  function paramDecimals(def) {
+    return def.decimals ?? 1;
+  }
+
+  function formatParamVal(def, val) {
+    const dp = paramDecimals(def);
+    const isParaA = type === 'parabola' && def.key === 'a';
+    const rounded = isParaA ? roundParabolaA(val) : n(val, dp);
+    const strFn = isParaA ? nStrExact : nStr;
+    return {
+      input: String(rounded),
+      display: strFn(rounded, dp) + (def.unit || ''),
+    };
+  }
+
+  function syncSliders() {
+    SLIDER_DEFS[type].forEach(def => {
+      const input = document.getElementById(`sl-${def.key}`);
+      const valEl = document.getElementById(`val-${def.key}`);
+      const val = params[type][def.key];
+      const fmt = formatParamVal(def, val);
+      if (input) input.value = fmt.input;
+      if (valEl) valEl.textContent = fmt.display;
+    });
+  }
+
+  function syncPlayButtons() {
+    playBtns.forEach(btn => {
+      if (btn.hidden) return;
+      const active = paramDemoPlaying && paramDemoMode === btn.dataset.mode;
+      btn.setAttribute('aria-pressed', String(active));
+      btn.textContent = active ? '⏸ หยุด' : btn.dataset.label;
+    });
+  }
+
+  function updatePlayTools() {
+    const cfg = PLAY_CONFIG[type];
+    playTools.hidden = !cfg;
+    if (!cfg) {
+      stopParamDemo(true);
+      return;
+    }
+    playHint.textContent = cfg.hint;
+    playGrid.classList.toggle('cols-3', cfg.buttons.length > 2);
+    playBtns.forEach((btn, i) => {
+      const def = cfg.buttons[i];
+      if (!def) {
+        btn.hidden = true;
+        return;
+      }
+      btn.hidden = false;
+      btn.dataset.mode = def.mode;
+      btn.dataset.label = def.label;
+      if (!paramDemoPlaying || paramDemoMode !== btn.dataset.mode) {
+        btn.textContent = def.label;
+      }
+    });
+    lineFun.hidden = type !== 'line';
+    if (type !== 'line' && carRunning) stopLineCar();
+    syncPlayButtons();
+    updateLineCarButton();
+  }
+
+  function updateCoordTools() {
+    const show = type === 'line' || type === 'parabola' || type === 'circle';
+    coordTools.hidden = !show;
+    if (!show) return;
+    const label = SHOW_COORD_SHORT[type] || SHOW_COORD_LABEL[type];
+    btnCoordToggle.textContent = label;
+    btnCoordToggle.title = SHOW_COORD_LABEL[type];
+    btnCoordToggle.setAttribute('aria-pressed', String(showCoords[type]));
+  }
+
+  function stopParamDemo(restore = true) {
+    paramDemoPlaying = false;
+    paramDemoMode = null;
+    if (paramDemoId) cancelAnimationFrame(paramDemoId);
+    paramDemoId = null;
+    if (restore && paramDemoSaved) {
+      Object.assign(params[type], paramDemoSaved);
+      syncSliders();
+      updateEqDisplay();
+      scheduleDraw(true);
+    }
+    paramDemoSaved = null;
+    syncPlayButtons();
+  }
+
+  function paramDemoFrame(now) {
+    if (!paramDemoPlaying || !paramDemoSaved) return;
+    const elapsed = now - paramDemoStart;
+    const demoMs = (type === 'parabola' && paramDemoMode === 'a')
+      ? PARAM_DEMO_MS_A : PARAM_DEMO_MS;
+    const t = (elapsed % demoMs) / demoMs;
+    const [min, max] = sliderRange(paramDemoMode);
+
+    if (type === 'line') {
+      if (paramDemoMode === 'm') {
+        params.line.m = valueDemoAt(paramDemoSaved.m, min, max, t);
+        params.line.c = paramDemoSaved.c;
+      } else if (paramDemoMode === 'c') {
+        params.line.m = paramDemoSaved.m;
+        params.line.c = valueDemoAt(paramDemoSaved.c, min, max, t);
+      }
+    } else if (type === 'parabola') {
+      const saved = paramDemoSaved;
+      params.parabola.h = saved.h;
+      params.parabola.k = saved.k;
+      if (paramDemoMode === 'a') {
+        const [aMin, aMax] = sliderRange('a');
+        params.parabola.a = valueDemoAtParabolaA(saved.a, aMin, aMax, t);
+      } else {
+        params.parabola.a = saved.a;
+        if (paramDemoMode === 'h') {
+          const [hMin, hMax] = sliderRange('h');
+          params.parabola.h = valueDemoAt(saved.h, hMin, hMax, t);
+        } else if (paramDemoMode === 'k') {
+          const [kMin, kMax] = sliderRange('k');
+          params.parabola.k = valueDemoAt(saved.k, kMin, kMax, t);
+        }
+      }
+    } else if (type === 'circle') {
+      const saved = paramDemoSaved;
+      params.circle.r = saved.r;
+      if (paramDemoMode === 'r') {
+        const [rMin, rMax] = sliderRange('r');
+        params.circle.r = valueDemoAt(saved.r, rMin, rMax, t);
+        params.circle.h = saved.h;
+        params.circle.k = saved.k;
+      } else if (paramDemoMode === 'h') {
+        const [hMin, hMax] = sliderRange('h');
+        params.circle.h = valueDemoAt(saved.h, hMin, hMax, t);
+        params.circle.k = saved.k;
+      } else if (paramDemoMode === 'k') {
+        const [kMin, kMax] = sliderRange('k');
+        params.circle.k = valueDemoAt(saved.k, kMin, kMax, t);
+        params.circle.h = saved.h;
+      }
+    }
+
+    syncSliders();
+    updateEqDisplay();
+    scheduleDraw();
+    paramDemoId = requestAnimationFrame(paramDemoFrame);
+  }
+
+  function startParamDemo(mode) {
+    if (!PLAY_CONFIG[type]) return;
+    if (paramDemoPlaying && paramDemoMode === mode) {
+      stopParamDemo(true);
+      return;
+    }
+    if (paramDemoPlaying) stopParamDemo(false);
+
+    paramDemoSaved = { ...params[type] };
+    paramDemoMode = mode;
+    paramDemoPlaying = true;
+    syncPlayButtons();
+    paramDemoStart = performance.now();
+    paramDemoId = requestAnimationFrame(paramDemoFrame);
+  }
+
+  function updatePanel() {
+    const meta = TYPE_META[type];
+    const tpl = EQ_TPL[type];
+
+    mainPanel.classList.toggle('mode-compact', COMPACT_TYPES.has(type));
+    syncParabolaEqTab();
+
+    if (type !== 'parabola') {
+      eqTagStd.textContent =
+        type === 'line' ? 'y = mx + c'
+        : type === 'circle' ? '(x−h)² + (y−k)² = r²'
+        : 'รูปมาตรฐาน (h, k)';
+      eqTagGen.textContent = 'รูปทั่วไป';
+      eqTplStd.textContent = tpl.std;
+      eqTplGen.textContent = tpl.gen;
+    }
+    eqGenCard.hidden = type === 'line' || type === 'circle' || type === 'parabola';
+    updateEqDisplay();
+    if (type === 'line' || type === 'circle') {
+      eqGen.dataset.cache = '';
+      eqGen.textContent = '';
+    }
+    eqHint.textContent = meta.hint;
+    updateCoordTools();
+    updatePlayTools();
+    srDesc.textContent = eqPlain();
+    canvas.setAttribute('aria-label', `ภาคตัดกรวย ${type} ${eqPlain()}`);
+  }
+
+  function onParamChange(key, v, valEl, unit) {
+    if (type === 'ellipse' && key === 'b') v = Math.min(v, params.ellipse.a);
+    if (type === 'ellipse' && key === 'a' && params.ellipse.b > v) {
+      params.ellipse.b = v;
+      const bIn = document.getElementById('sl-b');
+      const bVal = document.getElementById('val-b');
+      if (bIn) { bIn.max = v; bIn.value = v; }
+      if (bVal) bVal.textContent = nStr(v);
+    }
+    if (type === 'ellipse' && key === 'a') {
+      const bIn = document.getElementById('sl-b');
+      if (bIn) bIn.max = v;
+    }
+    if (type === 'parabola' && key === 'a') v = snapParabolaA(v);
+    params[type][key] = v;
+    if (valEl) {
+      const def = SLIDER_DEFS[type].find(d => d.key === key);
+      valEl.textContent = formatParamVal(def, v).display;
+    }
+    if (paramDemoPlaying) stopParamDemo(true);
+    updateEqDisplay();
+    scheduleDraw();
+  }
+
+  function renderSliders() {
+    slidersEl.innerHTML = '';
+    SLIDER_DEFS[type].forEach(def => {
+      const block = document.createElement('div');
+      block.className = 'slider-block';
+      const val = params[type][def.key];
+      const fmt = formatParamVal(def, val);
+      const titleAttr = def.title ? ` title="${def.title}"` : '';
+      block.innerHTML = `
+        <label for="sl-${def.key}"${titleAttr}>${def.label}
+          <span class="val" id="val-${def.key}">${fmt.display}</span>
+        </label>
+        <input type="range" id="sl-${def.key}"
+               min="${def.min}" max="${def.max}" step="${def.step}" value="${val}">`;
+      slidersEl.appendChild(block);
+      const input = block.querySelector('input');
+      const valEl = block.querySelector('.val');
+      input.addEventListener('input', () => {
+        onParamChange(def.key, Number(input.value), valEl, def.unit || '');
+      });
+    });
+  }
+
+  let firstTypeSet = true;
+
+  function setType(t) {
+    const prev = type;
+    // If user just moved from line teaching to parabola, demonstrate x^2 by default.
+    // This matches the desired "curve grows from the line" feeling.
+    if (t === 'parabola' && prev === 'line') {
+      params.parabola.a = 1;
+      params.parabola.h = 0;
+      params.parabola.k = 0;
+    }
+
+    type = t;
+    stopParamDemo(true);
+    if (t !== 'line' && carRunning) stopLineCar();
+    typeBtns.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.type === t)));
+    if (!firstTypeSet) flashEl(eqBox, 'is-switching');
+    firstTypeSet = false;
+    renderSliders();
+    updatePanel();
+
+    // Kick off canvas morph animation for curve transitions.
+    if (!reducedMotion) {
+      const known2dMorph =
+        (prev === 'line' && t === 'parabola') || (prev === 'parabola' && t === 'line') ||
+        (prev === 'line' && t === 'circle') || (prev === 'circle' && t === 'line') ||
+        (prev === 'parabola' && t === 'circle') || (prev === 'circle' && t === 'parabola');
+      const canMorph = view3d ? (prev !== t && known2dMorph) : known2dMorph;
+      if (view3d && prev !== t) startPlaneMorph(prev, t);
+      if (canMorph) {
+        graphMorph = {
+          fromType: prev,
+          toType: t,
+          start: performance.now(),
+          duration: GRAPH_MORPH_MS,
+          from: { p: { ...params[prev] } },
+          to: { p: { ...params[t] } },
+        };
+      } else {
+        graphMorph = null;
+      }
+    } else {
+      graphMorph = null;
+      if (view3d && prev !== t) startPlaneMorph(prev, t);
+    }
+    scheduleDraw(true);
+  }
+
+  typeBtns.forEach(btn => btn.addEventListener('click', () => setType(btn.dataset.type)));
+  btnView3d.addEventListener('click', toggleView3d);
+  btnLineCar.addEventListener('click', launchLineCar);
+  btnCoordToggle.addEventListener('click', () => {
+    if (!(type in showCoords)) return;
+    showCoords[type] = !showCoords[type];
+    updateCoordTools();
+    scheduleDraw();
+  });
+  playBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!btn.hidden) startParamDemo(btn.dataset.mode);
+    });
+  });
+
+  function setParabolaEqTab(tab) {
+    if (type !== 'parabola' || parabolaEqTab === tab) return;
+    parabolaEqTab = tab;
+    syncParabolaEqTab();
+    updateEqDisplay();
+    srDesc.textContent = eqPlain();
+    canvas.setAttribute('aria-label', `ภาคตัดกรวย ${type} ${eqPlain()}`);
+  }
+
+  eqTabStd.addEventListener('click', () => setParabolaEqTab('std'));
+  eqTabGen.addEventListener('click', () => setParabolaEqTab('gen'));
+
+  canvas.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    startPan(e);
+  });
+  window.addEventListener('mousemove', e => movePan(e));
+  window.addEventListener('mouseup', endPan);
+
+  canvas.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+    startPan(e.touches[0]);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    if (!panning || e.touches.length !== 1) return;
+    e.preventDefault();
+    movePan(e.touches[0]);
+  }, { passive: false });
+  window.addEventListener('touchend', endPan);
+  window.addEventListener('touchcancel', endPan);
+
+  canvas.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if (view3d) {
+      viewQuat = defaultViewQuat();
+      scheduleDraw(true);
+      return;
+    }
+    resetPan();
+  });
+
+  window.addEventListener('resize', () => {
+    updateLayout();
+    setupCanvas();
+    scheduleDraw(true);
+  });
+
+  updateLayout();
+  setupCanvas();
+  viewQuat = defaultViewQuat();
+  updateView3dUI();
+  setType('line');
+  requestAnimationFrame(() => document.body.classList.add('ready'));
+})();
+</script>
+</body>
+</html>
